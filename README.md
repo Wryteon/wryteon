@@ -9,6 +9,7 @@ A sleek, modern blogging CMS built with **Astro** and **Editor.js**, featuring a
 ## ✨ Features
 
 ### 📝 Rich Content Editor
+
 - **8 Block Types**: Headings, Paragraphs, Lists, Code, Quotes, Images, Embeds, Delimiters
 - **Keyboard Shortcuts**: Fast navigation with `CMD+SHIFT+H`, etc.
 - **Drag to Reorder**: Easily organize your content
@@ -16,18 +17,21 @@ A sleek, modern blogging CMS built with **Astro** and **Editor.js**, featuring a
 - **Rich Media**: Embed YouTube, Twitter, Instagram, and more
 
 ### 🎛️ Admin Dashboard
+
 - **Post Statistics**: See how many posts you have
 - **Quick Actions**: Create posts, view all, manage content
 - **Responsive Design**: Works on desktop, tablet, mobile
 - **Beautiful UI**: Modern gradient design with smooth interactions
 
 ### 📱 Frontend
+
 - **Homepage**: Shows all published posts
 - **Post Pages**: Beautiful rendering of all content types
 - **Responsive**: Mobile-first design that looks great everywhere
 - **Fast**: Static generation for instant load times
 
 ### 💾 Data Management
+
 - **Draft & Publish**: Save posts as drafts or publish instantly
 - **Automatic Metadata**: Tracks creation, update, and publication dates
 - **SEO-Friendly**: URL slugs and proper semantic HTML
@@ -45,6 +49,9 @@ npm install
 
 # Start development server
 npm run dev
+
+# Start development server with persisted db
+npm run dev -- --remote
 ```
 
 The dev server will start at `http://localhost:4321`
@@ -59,31 +66,31 @@ The dev server will start at `http://localhost:4321`
 
 ## 📖 Admin Pages
 
-| URL | Purpose |
-|-----|---------|
-| `/admin` | Dashboard with stats and quick actions |
-| `/admin/posts` | List all posts (edit/delete options) |
-| `/admin/new-post` | Create a new post |
-| `/admin/[slug]` | Edit existing post |
+| URL               | Purpose                                |
+| ----------------- | -------------------------------------- |
+| `/admin`          | Dashboard with stats and quick actions |
+| `/admin/posts`    | List all posts (edit/delete options)   |
+| `/admin/new-post` | Create a new post                      |
+| `/admin/[slug]`   | Edit existing post                     |
 
 ## 🌐 Public Pages
 
-| URL | Purpose |
-|-----|---------|
-| `/` | Homepage - shows published posts |
-| `/posts/[slug]` | Individual post page |
+| URL             | Purpose                          |
+| --------------- | -------------------------------- |
+| `/`             | Homepage - shows published posts |
+| `/posts/[slug]` | Individual post page             |
 
 ## ⌨️ Editor Shortcuts
 
-| Action | Shortcut |
-|--------|----------|
+| Action  | Shortcut      |
+| ------- | ------------- |
 | Heading | `CMD+SHIFT+H` |
-| List | `CMD+SHIFT+L` |
-| Code | `CMD+SHIFT+C` |
-| Quote | `CMD+SHIFT+Q` |
+| List    | `CMD+SHIFT+L` |
+| Code    | `CMD+SHIFT+C` |
+| Quote   | `CMD+SHIFT+Q` |
 | Divider | `CMD+SHIFT+D` |
 
-*Use `CTRL` instead of `CMD` on Windows/Linux*
+_Use `CTRL` instead of `CMD` on Windows/Linux_
 
 ## 📚 Documentation
 
@@ -111,7 +118,7 @@ src/
 │   └── db.ts                   # Data store & functions
 └── pages/
     ├── admin/                  # Admin interface
-    ├── posts/                  # Public posts
+    ├── general/                # Public posts area
     └── index.astro             # Homepage
 ```
 
@@ -125,42 +132,41 @@ npm run build
 npm run preview
 ```
 
-Deploy the `dist/` folder to:
-- **Vercel** - `vercel deploy`
-- **Netlify** - `netlify deploy`
-- **Astro Cloud** - `astro deploy`
-- **Any static host** - Copy `dist/` folder
-
 ## �� Customization
 
 ### Styling
+
 Edit component styles in `src/components/` files. Each component has scoped CSS.
 
 ### Block Types
+
 Add new block types:
-1. Create component in `src/components/blocks/NewBlock.astro`
-2. Add to Editor.js in `src/components/Editor.client.ts`
-3. Add case to BlockRenderer in `src/components/blocks/BlockRenderer.astro`
+
+1. Create component in `src/general/components/blocks/NewBlock.astro`
+2. Add to Editor.js in `src/admin/components/Editor.client.ts`
+3. Add case to BlockRenderer in `src/general/components/blocks/BlockRenderer.astro`
 
 ### Database
+
 Local development defaults to Astro DB's ephemeral `.astro/content.db`, which is recreated on each restart. To keep a persistent SQLite file instead, set up a local development database:
 
 1. **Configure the connection**
-    - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./db/dev.sqlite`.
+   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./db/dev.sqlite`.
 2. **Create the SQLite file**
-    - Run `mkdir -p db && touch db/dev.sqlite` to ensure the file exists.
+   - Run `mkdir -p .db && touch .db/dev.sqlite` to ensure the file exists.
 3. **Push the schema**
-    - Execute `npx astro db push --remote` to create the `Posts` table in the new database.
+   - Execute `npx astro db push --remote` to create the `Posts` table in the new database.
 4. **(Optional) Seed sample data**
-    - Copy `db/seed.ts.backup` to `db/seed.ts`, then run `npx astro db execute db/seed.ts --remote`.
+   - Copy `db/seed.ts.backup` to `db/seed.ts`, then run `npx astro db execute db/seed.ts --remote`.
 5. **Use the remote flag in dev**
-    - Start the dev server with `npm run dev -- --remote` (or `npx astro dev --remote`).
+   - Start the dev server with `npm run dev -- --remote` (or `npx astro dev --remote`).
 
-With this setup, Astro connects to `db/dev.sqlite` and preserves your data between restarts.
+With this setup, Astro connects to `.db/dev.sqlite` and preserves your data between restarts.
 
 ## 🔄 Workflow Examples
 
 ### Example 1: Blog Post
+
 ```
 1. Go to /admin/new-post
 2. Add heading "My First Post"
@@ -173,6 +179,7 @@ With this setup, Astro connects to `db/dev.sqlite` and preserves your data betwe
 ```
 
 ### Example 2: Tutorial
+
 ```
 1. Create post "Getting Started"
 2. Add heading "Introduction"
@@ -183,13 +190,6 @@ With this setup, Astro connects to `db/dev.sqlite` and preserves your data betwe
 7. Add heading "Conclusion"
 8. Publish
 ```
-
-## 📊 Performance
-
-- **Homepage Load**: ~100ms (static HTML)
-- **Admin Dashboard**: ~500ms (includes Editor.js)
-- **Post Page**: ~100ms (static HTML)
-- **Editor.js Bundle**: ~45KB gzipped
 
 ## 🛣️ Roadmap
 
@@ -206,18 +206,16 @@ With this setup, Astro connects to `db/dev.sqlite` and preserves your data betwe
 ## 🤝 Contributing
 
 Contributions welcome! Feel free to:
+
 - Report bugs
 - Suggest features
 - Submit pull requests
 - Improve documentation
 
-## 📄 License
-
-MIT - Feel free to use this for personal or commercial projects
-
 ## 🙌 Credits
 
 Built with:
+
 - [Astro](https://astro.build)
 - [Editor.js](https://editorjs.io)
 - Community feedback & inspiration
@@ -225,6 +223,7 @@ Built with:
 ## 📞 Support
 
 For questions or issues:
+
 1. Check the documentation files
 2. Review the code comments
 3. Check Editor.js documentation

@@ -8,45 +8,45 @@ import Editor from "../../admin/components/Editor.astro";
 export const prerender = false;
 
 const isPostStatus = (value: unknown): value is PostStatus =>
-    value === "draft" || value === "published";
+  value === "draft" || value === "published";
 
 const isEditorDocument = (value: unknown): value is EditorDocument => {
-    if (typeof value !== "object" || value === null) {
-        return false;
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as { blocks?: unknown };
+  if (!Array.isArray(candidate.blocks)) {
+    return false;
+  }
+
+  return candidate.blocks.every((block) => {
+    if (typeof block !== "object" || block === null) {
+      return false;
     }
 
-    const candidate = value as { blocks?: unknown };
-    if (!Array.isArray(candidate.blocks)) {
-        return false;
-    }
-
-    return candidate.blocks.every((block) => {
-        if (typeof block !== "object" || block === null) {
-            return false;
-        }
-
-        const typedBlock = block as { type?: unknown; data?: unknown };
-        return (
-            typeof typedBlock.type === "string" &&
-            typeof typedBlock.data === "object" &&
-            typedBlock.data !== null
-        );
-    });
+    const typedBlock = block as { type?: unknown; data?: unknown };
+    return (
+      typeof typedBlock.type === "string" &&
+      typeof typedBlock.data === "object" &&
+      typedBlock.data !== null
+    );
+  });
 };
 
 const isPostPayload = (value: unknown): value is PostPayload => {
-    if (typeof value !== "object" || value === null) {
-        return false;
-    }
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
 
-    const candidate = value as Record<string, unknown>;
-    return (
-        typeof candidate.id === "string" &&
-        typeof candidate.title === "string" &&
-        typeof candidate.slug === "string" &&
-        isPostStatus(candidate.status) &&
-        isEditorDocument(candidate.blocks)
-    );
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.slug === "string" &&
+    isPostStatus(candidate.status) &&
+    isEditorDocument(candidate.blocks)
+  );
 };
 
 const { slug } = Astro.params;
@@ -54,200 +54,190 @@ const isNewPost = slug === "new-post";
 
 // Handle POST from form submission
 if (Astro.request.method === "POST") {
-    const formData = await Astro.request.json();
+  const formData = await Astro.request.json();
 
-    if (isPostPayload(formData)) {
-        await savePost(formData);
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
-    }
-
-    return new Response(JSON.stringify({ error: "Invalid data" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
+  if (isPostPayload(formData)) {
+    await savePost(formData);
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
     });
+  }
+
+  return new Response(JSON.stringify({ error: "Invalid data" }), {
+    status: 400,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 const post: PostRecord | null = !isNewPost
-    ? await getPostBySlug(slug as string)
-    : null;
+  ? await getPostBySlug(slug as string)
+  : null;
 
 if (!isNewPost && !post) {
-    return Astro.redirect("/admin/posts");
+  return Astro.redirect("/admin/posts");
 }
 
 const rawBlocks: unknown = post?.blocks ?? null;
 const initialDocument: EditorDocument = isEditorDocument(rawBlocks)
-    ? rawBlocks
-    : { blocks: [] };
+  ? rawBlocks
+  : { blocks: [] };
 const initialData = JSON.stringify(initialDocument);
 ---
 
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width" />
-        <title>Edit Post - {isNewPost ? "New Post" : slug}</title>
-        <style>
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    sans-serif;
-                margin: 0;
-                padding: 20px;
-                background: #f5f5f5;
-            }
-            .container {
-                max-width: 800px;
-                margin: 0 auto;
-                background: white;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                padding: 20px;
-            }
-            .header {
-                margin-bottom: 20px;
-                padding-bottom: 20px;
-                border-bottom: 1px solid #e1e5e9;
-            }
-            .title-input {
-                width: 100%;
-                font-size: 24px;
-                font-weight: bold;
-                border: none;
-                outline: none;
-                padding: 10px 0;
-                margin-bottom: 10px;
-            }
-            .slug-input {
-                width: 100%;
-                font-size: 14px;
-                color: #666;
-                border: none;
-                outline: none;
-                padding: 5px 0;
-            }
-            .status-select {
-                margin-top: 10px;
-                padding: 5px 10px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <input
-                    type="text"
-                    class="title-input"
-                    placeholder="Post Title"
-                    value={post?.title ?? ""}
-                    id="title-input"
-                />
-                <input
-                    type="text"
-                    class="slug-input"
-                    placeholder="post-slug"
-                    value={post?.slug ?? ""}
-                    id="slug-input"
-                />
-                <select class="status-select" id="status-select">
-                    <option
-                        value="draft"
-                        selected={post?.status !== "published"}
-                    >
-                        Draft
-                    </option>
-                    <option
-                        value="published"
-                        selected={post?.status === "published"}
-                    >
-                        Published
-                    </option>
-                </select>
-            </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Edit Post - {isNewPost ? "New Post" : slug}</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+      .header {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e1e5e9;
+      }
+      .title-input {
+        width: 100%;
+        font-size: 24px;
+        font-weight: bold;
+        border: none;
+        outline: none;
+        padding: 10px 0;
+        margin-bottom: 10px;
+      }
+      .slug-input {
+        width: 100%;
+        font-size: 14px;
+        color: #666;
+        border: none;
+        outline: none;
+        padding: 5px 0;
+      }
+      .status-select {
+        margin-top: 10px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <input
+          type="text"
+          class="title-input"
+          placeholder="Post Title"
+          value={post?.title ?? ""}
+          id="title-input"
+        />
+        <input
+          type="text"
+          class="slug-input"
+          placeholder="post-slug"
+          value={post?.slug ?? ""}
+          id="slug-input"
+        />
+        <select class="status-select" id="status-select">
+          <option value="draft" selected={post?.status !== "published"}>
+            Draft
+          </option>
+          <option value="published" selected={post?.status === "published"}>
+            Published
+          </option>
+        </select>
+      </div>
 
-            <Editor data={initialData} />
-        </div>
+      <Editor data={initialData} />
+    </div>
 
-        <script>
-            // Handle editor save events
-            const editorElement = document.querySelector("editor-component");
-            if (!editorElement) {
-                console.error("Editor component not found on the page.");
+    <script>
+      // Handle editor save events
+      const editorElement = document.querySelector("editor-component");
+      if (!editorElement) {
+        console.error("Editor component not found on the page.");
+      } else {
+        editorElement.addEventListener("editor-save", async (event) => {
+          const customEvent =
+            event && typeof event === "object" && "detail" in event
+              ? /** @type {CustomEvent} */ (event)
+              : null;
+          const editorData = customEvent?.detail;
+
+          if (!editorData) {
+            alert("Editor data missing from save event");
+            return;
+          }
+
+          const titleInput = document.getElementById("title-input");
+          const slugInput = document.getElementById("slug-input");
+          const statusSelect = document.getElementById("status-select");
+
+          if (
+            !(titleInput instanceof HTMLInputElement) ||
+            !(slugInput instanceof HTMLInputElement) ||
+            !(statusSelect instanceof HTMLSelectElement)
+          ) {
+            alert("Editor form inputs are missing");
+            return;
+          }
+
+          const title = titleInput.value;
+          const slug = slugInput.value;
+          const status = statusSelect.value;
+
+          if (!title || !slug) {
+            alert("Please fill in both title and slug");
+            return;
+          }
+
+          try {
+            const response = await fetch("/admin/" + slug, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: slug, // Use slug as ID for simplicity
+                title,
+                slug,
+                blocks: editorData,
+                status,
+                publishedAt:
+                  status === "published" ? new Date().toISOString() : null,
+              }),
+            });
+
+            if (response.ok) {
+              alert("Post saved successfully!");
+              // Redirect to the post if published
+              if (status === "published") {
+                window.location.href = `/${slug}`;
+              }
             } else {
-                editorElement.addEventListener("editor-save", async (event) => {
-                    const customEvent =
-                        event && typeof event === "object" && "detail" in event
-                            ? /** @type {CustomEvent} */ (event)
-                            : null;
-                    const editorData = customEvent?.detail;
-
-                    if (!editorData) {
-                        alert("Editor data missing from save event");
-                        return;
-                    }
-
-                    const titleInput = document.getElementById("title-input");
-                    const slugInput = document.getElementById("slug-input");
-                    const statusSelect =
-                        document.getElementById("status-select");
-
-                    if (
-                        !(titleInput instanceof HTMLInputElement) ||
-                        !(slugInput instanceof HTMLInputElement) ||
-                        !(statusSelect instanceof HTMLSelectElement)
-                    ) {
-                        alert("Editor form inputs are missing");
-                        return;
-                    }
-
-                    const title = titleInput.value;
-                    const slug = slugInput.value;
-                    const status = statusSelect.value;
-
-                    if (!title || !slug) {
-                        alert("Please fill in both title and slug");
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch("/admin/" + slug, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                                id: slug, // Use slug as ID for simplicity
-                                title,
-                                slug,
-                                blocks: editorData,
-                                status,
-                                publishedAt:
-                                    status === "published"
-                                        ? new Date().toISOString()
-                                        : null,
-                            }),
-                        });
-
-                        if (response.ok) {
-                            alert("Post saved successfully!");
-                            // Redirect to the post if published
-                            if (status === "published") {
-                                window.location.href = `/blog/${slug}`;
-                            }
-                        } else {
-                            alert("Failed to save post");
-                        }
-                    } catch (error) {
-                        console.error("Save error:", error);
-                        alert("Error saving post");
-                    }
-                });
+              alert("Failed to save post");
             }
-        </script>
-    </body>
+          } catch (error) {
+            console.error("Save error:", error);
+            alert("Error saving post");
+          }
+        });
+      }
+    </script>
+  </body>
 </html>

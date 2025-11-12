@@ -1,5 +1,5 @@
 ---
-import PostPage from "../blog/components/PostPage.astro";
+import PostPage from "../general/components/PostPage.astro";
 import { getPostBySlug, type PostRecord } from "../lib/db";
 
 export const prerender = false;
@@ -7,20 +7,20 @@ export const prerender = false;
 const RESERVED_SLUGS = new Set(["admin", "api", "blog"]);
 
 export const match = (params) => {
-    const slug = params.slug;
-    return typeof slug === "string" && !RESERVED_SLUGS.has(slug);
+  const slug = params.slug;
+  return typeof slug === "string" && !RESERVED_SLUGS.has(slug);
 };
 
 const slugParam = Astro.params?.slug;
 
 if (typeof slugParam !== "string") {
-    return Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 
 const post = await getPostBySlug(slugParam);
 
 if (!post || post.status !== "published") {
-    return Astro.redirect("/404");
+  return Astro.redirect("/404");
 }
 
 const publishedPost = post as PostRecord;
