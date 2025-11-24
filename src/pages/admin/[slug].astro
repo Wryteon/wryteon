@@ -1,11 +1,24 @@
 ---
 import { savePost, getPostBySlug } from "../../lib/db";
+import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
 import type { PostPayload, PostStatus } from "../../types/post";
 import type { EditorDocument } from "../../types/editor";
 import Editor from "../../admin/components/Editor.astro";
 
 export const prerender = false;
+
+// Validate session
+const cookies = Astro.request.headers.get("cookie") || "";
+const sessionToken = cookies
+  .split(";")
+  .find((c) => c.trim().startsWith("session="))
+  ?.split("=")[1];
+
+const session = sessionToken ? await validateSession(sessionToken) : null;
+if (!session) {
+  return Astro.redirect("/auth/login");
+}
 
 const isPostStatus = (value: unknown): value is PostStatus =>
   value === "draft" || value === "published";
