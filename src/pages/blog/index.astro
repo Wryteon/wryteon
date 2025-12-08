@@ -1,0 +1,164 @@
+---
+import type { Block } from "../../blog/components/BlockRenderer.astro";
+import { getPublishedPosts, type PostRecord } from "../../lib/db";
+
+const posts = await getPublishedPosts();
+
+type PostWithExcerpt = PostRecord & { excerpt: string };
+
+const postsWithExcerpt: Array<PostWithExcerpt> = posts.map((post) => {
+    const document = (post.blocks as { blocks?: Block[] } | null) ?? {
+        blocks: [],
+    };
+    const blocks: Block[] = document.blocks ?? [];
+
+    const hasText = (
+        block: Block,
+    ): block is Extract<Block, { data: { text: string } }> =>
+        typeof (block as { data?: { text?: unknown } }).data?.text === "string";
+
+    const firstTextBlock = blocks.find(hasText);
+    const firstBlockText = firstTextBlock?.data.text ?? "";
+
+    const excerpt = firstBlockText
+        ? `${firstBlockText.substring(0, 150)}...`
+        : "No preview available";
+
+    const publishedAt =
+        post.publishedAt instanceof Date
+            ? post.publishedAt
+            : post.publishedAt
+              ? new Date(post.publishedAt)
+              : null;
+
+    return {
+        ...post,
+        publishedAt,
+        excerpt,
+    };
+});
+---
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>Wryteon - Modern Block-Based CMS</title>
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                margin: 0;
+                padding: 20px;
+                background: #f5f5f5;
+                line-height: 1.6;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 40px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #e1e5e9;
+            }
+            .header h1 {
+                margin: 0;
+                color: #333;
+            }
+            .header p {
+                color: #666;
+                margin: 10px 0 0 0;
+            }
+            .posts-list {
+                list-style: none;
+                padding: 0;
+            }
+            .post-item {
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #e1e5e9;
+            }
+            .post-item:last-child {
+                border-bottom: none;
+            }
+            .post-title {
+                margin: 0 0 10px 0;
+                font-size: 24px;
+            }
+            .post-title a {
+                text-decoration: none;
+                color: #007acc;
+            }
+            .post-title a:hover {
+                text-decoration: underline;
+            }
+            .post-meta {
+                color: #666;
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+            .post-excerpt {
+                color: #333;
+            }
+            .admin-link {
+                display: inline-block;
+                margin-top: 20px;
+                padding: 10px 20px;
+                background: #007acc;
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+            }
+            .admin-link:hover {
+                background: #005aa3;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>Wryteon</h1>
+                <p>A modern block-based blogging CMS built with Astro</p>
+            </div>
+
+            <ul class="posts-list">
+                {
+                    postsWithExcerpt.map((post) => (
+                        <li class="post-item">
+                            <h2 class="post-title">
+                                <a href={`/${post.slug}`}>{post.title}</a>
+                            </h2>
+                            <div class="post-meta">
+                                Published on{" "}
+                                {post.publishedAt
+                                    ? post.publishedAt.toLocaleDateString()
+                                    : "Unpublished"}
+                            </div>
+                            <div class="post-excerpt">{post.excerpt}</div>
+                        </li>
+                    ))
+                }
+            </ul>
+
+            {
+                postsWithExcerpt.length === 0 && (
+                    <p>
+                        No posts published yet.{" "}
+                        <a href="/admin/new-post">Create your first post</a>.
+                    </p>
+                )
+            }
+
+            <a href="/admin/new-post" class="admin-link">Create New Post</a>
+        </div>
+    </body>
+</html>

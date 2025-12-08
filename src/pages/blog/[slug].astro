@@ -1,0 +1,17 @@
+---
+import PostPage from "../../blog/components/PostPage.astro";
+import { getPostBySlug, type PostRecord } from "../../lib/db";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const post = await getPostBySlug(slug as string);
+
+if (!post || post.status !== "published") {
+    return Astro.redirect("/404");
+}
+
+const publishedPost = post as PostRecord;
+---
+
+<PostPage post={publishedPost} backLinkHref="/blog" />

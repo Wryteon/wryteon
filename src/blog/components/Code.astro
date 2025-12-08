@@ -1,0 +1,28 @@
+---
+export interface Props {
+  data: {
+    code: string;
+  };
+}
+
+const { data } = Astro.props;
+---
+
+<pre><code set:html={data.code} /></pre>
+
+<style>
+  pre {
+    background: #282c34;
+    color: #abb2bf;
+    padding: 16px;
+    border-radius: 4px;
+    margin: 12px 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    overflow-x: auto;
+  }
+
+  code {
+    font-family: 'Courier New', Courier, monospace;
+  }
+</style>

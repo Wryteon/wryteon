@@ -1,0 +1,14 @@
+---
+interface Props {
+    data?: string;
+}
+
+const { data = '{"blocks": []}' } = Astro.props;
+---
+
+<editor-component data={data}></editor-component>
+
+<script>
+    // Register the editor Web Component
+    import "./Editor.client";
+</script>

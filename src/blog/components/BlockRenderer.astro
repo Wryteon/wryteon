@@ -1,0 +1,65 @@
+---
+import Header, { type Props as HeaderProps } from "./Header.astro";
+import Paragraph, { type Props as ParagraphProps } from "./Paragraph.astro";
+import Image, { type Props as ImageProps } from "./Image.astro";
+import Code, { type Props as CodeProps } from "./Code.astro";
+import Quote, { type Props as QuoteProps } from "./Quote.astro";
+import List, { type Props as ListProps } from "./List.astro";
+import Delimiter, { type Props as DelimiterProps } from "./Delimiter.astro";
+import Embed, { type Props as EmbedProps } from "./Embed.astro";
+
+export type Block = {
+    type: string;
+    data?: Record<string, unknown> | null;
+};
+
+export interface Props {
+    blocks: Block[];
+}
+
+const { blocks } = Astro.props as Props;
+
+const isBlockType = (block: Block, type: string) => block.type === type;
+---
+
+{
+    blocks.map((block) => {
+        if (isBlockType(block, "header")) {
+            return <Header data={block.data as HeaderProps["data"]} />;
+        }
+        if (isBlockType(block, "paragraph")) {
+            return <Paragraph data={block.data as ParagraphProps["data"]} />;
+        }
+        if (isBlockType(block, "image")) {
+            return <Image data={block.data as ImageProps["data"]} />;
+        }
+        if (isBlockType(block, "code")) {
+            return <Code data={block.data as CodeProps["data"]} />;
+        }
+        if (isBlockType(block, "quote")) {
+            return <Quote data={block.data as QuoteProps["data"]} />;
+        }
+        if (isBlockType(block, "list")) {
+            return <List data={block.data as ListProps["data"]} />;
+        }
+        if (isBlockType(block, "delimiter")) {
+            if (block.data) {
+                return (
+                    <Delimiter
+                        data={block.data as NonNullable<DelimiterProps["data"]>}
+                    />
+                );
+            }
+            return <Delimiter />;
+        }
+        if (isBlockType(block, "embed")) {
+            return <Embed data={block.data as EmbedProps["data"]} />;
+        }
+
+        return (
+            <div style="padding: 12px; background: #f0f0f0; border-radius: 4px; color: #666;">
+                Unknown block type: {block.type}
+            </div>
+        );
+    })
+}

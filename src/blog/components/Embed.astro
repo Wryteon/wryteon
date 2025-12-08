@@ -1,0 +1,61 @@
+---
+export interface Props {
+  data: {
+    service: string;
+    source: string;
+    embed?: string;
+    width?: number;
+    height?: number;
+    caption?: string;
+  };
+}
+
+const { data } = Astro.props;
+---
+
+<div class="embed-wrapper">
+  {
+    data.embed ? (
+      <iframe
+        src={data.embed}
+        width={data.width || "100%"}
+        height={data.height || 315}
+        style="border: 0;"
+        allowfullscreen
+      />
+    ) : (
+      <a href={data.source} target="_blank" rel="noopener noreferrer">
+        View {data.service} embed
+      </a>
+    )
+  }
+  {data.caption && <figcaption set:html={data.caption} />}
+</div>
+
+<style>
+  .embed-wrapper {
+    margin: 20px 0;
+  }
+
+  iframe {
+    max-width: 100%;
+    border-radius: 4px;
+    border: 1px solid #e1e5e9;
+  }
+
+  figcaption {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+    text-align: center;
+  }
+
+  a {
+    color: #007acc;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+</style>

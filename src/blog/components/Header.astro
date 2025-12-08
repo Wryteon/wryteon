@@ -1,0 +1,18 @@
+---
+export interface Props {
+    data: {
+        text: string;
+        level: number;
+    };
+}
+
+const { data } = Astro.props;
+const level = Math.min(Math.max(data.level || 1, 1), 6);
+---
+
+{level === 1 && <h1 set:html={data.text} />}
+{level === 2 && <h2 set:html={data.text} />}
+{level === 3 && <h3 set:html={data.text} />}
+{level === 4 && <h4 set:html={data.text} />}
+{level === 5 && <h5 set:html={data.text} />}
+{level === 6 && <h6 set:html={data.text} />}

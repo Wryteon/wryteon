@@ -1,0 +1,37 @@
+import { db } from 'astro:db';
+
+// https://astro.build/db/seed
+export default async function seed() {
+  await db.insert('Posts').values([
+    {
+      id: 'welcome-post',
+      title: 'Welcome to Wryteon',
+      slug: 'welcome-to-wryteon',
+      blocks: {
+        blocks: [
+          {
+            type: 'header',
+            data: {
+              text: 'Welcome to Wryteon',
+              level: 1
+            }
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'This is your first post created with the Wryteon CMS. It uses a block-based editor similar to Notion or WordPress Gutenberg.'
+            }
+          },
+          {
+            type: 'paragraph',
+            data: {
+              text: 'You can edit this post by visiting the admin interface at <code>/admin/welcome-to-wryteon</code>.'
+            }
+          }
+        ]
+      },
+      status: 'published',
+      publishedAt: new Date(),
+    }
+  ]);
+}

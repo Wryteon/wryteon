@@ -1,0 +1,11 @@
+---
+export interface Props {
+    data: {
+        text: string;
+    };
+}
+
+const { data } = Astro.props;
+---
+
+<p set:html={data.text} />
