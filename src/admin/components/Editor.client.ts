@@ -1,11 +1,14 @@
-import EditorJS, { type EditorConfig, type OutputData } from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import Paragraph from '@editorjs/paragraph';
-import Image from '@editorjs/image';
-import Code from '@editorjs/code';
-import Quote from '@editorjs/quote';
-import List from '@editorjs/list';
-import Delimiter from '@editorjs/delimiter';
+import EditorJS, {
+  type EditorConfig,
+  type OutputData,
+} from "@editorjs/editorjs";
+import Header from "@editorjs/header";
+import Paragraph from "@editorjs/paragraph";
+import Image from "@editorjs/image";
+import Code from "@editorjs/code";
+import Quote from "@editorjs/quote";
+import List from "@editorjs/list";
+import Delimiter from "@editorjs/delimiter";
 
 type SaveHandler = (data: OutputData) => void;
 
@@ -237,6 +240,189 @@ class EditorComponent extends HTMLElement {
           padding: 8px;
           border-radius: 4px;
         }
+
+        /* Preview Modal Styles */
+        .preview-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 1000;
+          display: none;
+        }
+
+        .preview-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          cursor: pointer;
+        }
+
+        .preview-content {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          border-radius: 8px;
+          width: 90%;
+          max-width: 800px;
+          max-height: 80%;
+          overflow-y: auto;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .preview-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 20px;
+          border-bottom: 1px solid #eee;
+        }
+
+        .preview-header h2 {
+          margin: 0;
+          font-size: 24px;
+          color: var(--color-text-primary);
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: var(--color-text-secondary);
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+          background: #f0f0f0;
+        }
+
+        .preview-body {
+          padding: 20px;
+          line-height: 1.6;
+          color: var(--color-text-primary);
+        }
+
+        .preview-body h1,
+        .preview-body h2,
+        .preview-body h3,
+        .preview-body h4,
+        .preview-body h5,
+        .preview-body h6 {
+          margin-top: 24px;
+          margin-bottom: 12px;
+          line-height: 1.2;
+          font-weight: 700;
+        }
+
+        .preview-body h1 { font-size: 32px; }
+        .preview-body h2 { font-size: 24px; }
+        .preview-body h3 { font-size: 20px; }
+        .preview-body h4 { font-size: 18px; }
+        .preview-body h5 { font-size: 16px; }
+        .preview-body h6 { font-size: 14px; }
+
+        .preview-body p {
+          margin-bottom: 12px;
+        }
+
+        .preview-body blockquote {
+          border-left: 4px solid var(--color-primary);
+          padding: 16px 16px 16px 20px;
+          margin: 16px 0;
+          background: #f5f5f5;
+          border-radius: 4px;
+          font-style: italic;
+          color: var(--color-text-secondary);
+        }
+
+        .preview-body pre {
+          background: #282c34;
+          color: #abb2bf;
+          padding: 16px;
+          border-radius: 4px;
+          margin: 12px 0;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 14px;
+          overflow-x: auto;
+        }
+
+        .preview-body ul,
+        .preview-body ol {
+          margin: 12px 0;
+          padding-left: 24px;
+        }
+
+        .preview-body ul {
+          list-style-type: disc;
+        }
+
+        .preview-body ol {
+          list-style-type: decimal;
+        }
+
+        .preview-body hr {
+          border: none;
+          border-top: 1px solid var(--color-border);
+          margin: 20px 0;
+        }
+
+        .preview-body figure {
+          margin: 20px 0;
+          text-align: center;
+        }
+
+        .preview-body img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 4px;
+        }
+
+        .preview-body figcaption {
+          margin-top: 8px;
+          font-size: 13px;
+          color: var(--color-text-secondary);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+          .preview-content {
+            width: 95%;
+            max-height: 90%;
+          }
+
+          .preview-header {
+            padding: 15px;
+          }
+
+          .preview-header h2 {
+            font-size: 20px;
+          }
+
+          .preview-body {
+            padding: 15px;
+          }
+
+          .preview-body h1 { font-size: 28px; }
+          .preview-body h2 { font-size: 22px; }
+          .preview-body h3 { font-size: 18px; }
+          .preview-body h4 { font-size: 16px; }
+          .preview-body h5 { font-size: 14px; }
+          .preview-body h6 { font-size: 12px; }
+        }
       </style>
       <div class="editor-wrapper">
         <div class="editor-toolbar">
@@ -250,23 +436,43 @@ class EditorComponent extends HTMLElement {
         </div>
         <div class="editor-container" id="editor"></div>
       </div>
+      <div id="preview-modal" class="preview-modal">
+        <div class="preview-overlay"></div>
+        <div class="preview-content">
+          <div class="preview-header">
+            <h2>Post Preview</h2>
+            <button class="close-btn">&times;</button>
+          </div>
+          <div class="preview-body" id="preview-body"></div>
+        </div>
+      </div>
     `;
 
     const root = this as HTMLElement;
-    const saveButton = root.querySelector<HTMLButtonElement>('#save-btn');
-    const previewButton = root.querySelector<HTMLButtonElement>('#preview-btn');
+    const saveButton = root.querySelector<HTMLButtonElement>("#save-btn");
+    const previewButton = root.querySelector<HTMLButtonElement>("#preview-btn");
+    const closeBtn = root.querySelector<HTMLButtonElement>(".close-btn");
+    const overlay = root.querySelector<HTMLDivElement>(".preview-overlay");
 
     if (saveButton) {
-      saveButton.addEventListener('click', () => this.saveData());
+      saveButton.addEventListener("click", () => this.saveData());
     }
 
     if (previewButton) {
-      previewButton.addEventListener('click', () => this.previewData());
+      previewButton.addEventListener("click", () => this.previewData());
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => this.closePreview());
+    }
+
+    if (overlay) {
+      overlay.addEventListener("click", () => this.closePreview());
     }
   }
 
   private async initializeEditor() {
-    const editorElement = this.querySelector<HTMLDivElement>('#editor');
+    const editorElement = this.querySelector<HTMLDivElement>("#editor");
     if (!editorElement) return;
 
     const parseInitialData = (raw: string | null): OutputData => {
@@ -280,100 +486,102 @@ class EditorComponent extends HTMLElement {
           return parsed;
         }
       } catch (error) {
-        console.warn('Failed to parse editor data attribute', error);
+        console.warn("Failed to parse editor data attribute", error);
       }
 
       return { blocks: [] };
     };
 
-    const initialData = parseInitialData(this.getAttribute('data'));
+    const initialData = parseInitialData(this.getAttribute("data"));
 
     const tools: Record<string, unknown> = {
       header: {
         class: Header,
         config: {
-          placeholder: 'Enter a heading',
+          placeholder: "Enter a heading",
           levels: [1, 2, 3, 4, 5, 6],
           defaultLevel: 2,
         },
-        shortcut: 'CMD+SHIFT+H'
+        shortcut: "CMD+SHIFT+H",
       },
       paragraph: {
         class: Paragraph,
         inlineToolbar: true,
         config: {
-          placeholder: 'Start typing or press "/" for commands...'
-        }
+          placeholder: 'Start typing or press "/" for commands...',
+        },
       },
       list: {
         class: List,
         inlineToolbar: true,
         config: {
-          defaultStyle: 'unordered'
+          defaultStyle: "unordered",
         },
-        shortcut: 'CMD+SHIFT+L'
+        shortcut: "CMD+SHIFT+L",
       },
       code: {
         class: Code,
         config: {
-          placeholder: 'Enter code snippet...'
+          placeholder: "Enter code snippet...",
         },
-        shortcut: 'CMD+SHIFT+C'
+        shortcut: "CMD+SHIFT+C",
       },
       quote: {
         class: Quote,
         inlineToolbar: true,
         config: {
-          quotePlaceholder: 'Enter a quote',
-          captionPlaceholder: 'Quote author'
+          quotePlaceholder: "Enter a quote",
+          captionPlaceholder: "Quote author",
         },
-        shortcut: 'CMD+SHIFT+Q'
+        shortcut: "CMD+SHIFT+Q",
       },
       image: {
         class: Image,
         config: {
           endpoints: {
-            byFile: '/api/upload',
-            byUrl: '/api/fetchUrl',
+            byFile: "/api/upload",
+            byUrl: "/api/fetchUrl",
           },
-          field: 'image',
-          types: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-          captionPlaceholder: 'Add image caption...',
-          buttonText: 'Choose an Image',
-        }
+          field: "image",
+          types: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+          captionPlaceholder: "Add image caption...",
+          buttonText: "Choose an Image",
+        },
       },
       delimiter: {
         class: Delimiter,
-        shortcut: 'CMD+SHIFT+D'
-      }
+        shortcut: "CMD+SHIFT+D",
+      },
     };
 
     const config: EditorConfig = {
       holder: editorElement,
-      tools: tools as unknown as NonNullable<EditorConfig['tools']>,
+      tools: tools as unknown as NonNullable<EditorConfig["tools"]>,
       data: initialData,
       autofocus: true,
-      placeholder: 'Let\'s create an amazing post! 🚀',
+      placeholder: "Let's create an amazing post! 🚀",
       onReady: () => {
-        console.log('Editor.js is ready to work!');
-      }
+        console.log("Editor.js is ready to work!");
+      },
     };
 
     this.editor = new EditorJS(config);
 
     // Add keyboard shortcuts info
-    this.dispatchEvent(new CustomEvent('editor-ready', {
-      detail: {
-        shortcuts: {
-          'CMD+SHIFT+H': 'Heading',
-          'CMD+SHIFT+L': 'List',
-          'CMD+SHIFT+C': 'Code',
-          'CMD+SHIFT+Q': 'Quote',
-          'CMD+SHIFT+D': 'Delimiter'
-        }
-      },
-      bubbles: true
-    }));
+    this.dispatchEvent(
+      new CustomEvent("editor-ready", {
+        detail: {
+          shortcuts: {
+            "CMD+SHIFT+H": "Heading",
+            "CMD+SHIFT+L": "List",
+            "CMD+SHIFT+C": "Code",
+            "CMD+SHIFT+Q": "Quote",
+            "CMD+SHIFT+D": "Delimiter",
+          },
+        },
+        bubbles: true,
+      })
+    );
   }
 
   private async saveData() {
@@ -385,17 +593,21 @@ class EditorComponent extends HTMLElement {
         this.saveCallback(outputData);
       } else {
         // Dispatch custom event for parent components to listen to
-        this.dispatchEvent(new CustomEvent<OutputData>('editor-save', {
-          detail: outputData,
-          bubbles: true
-        }));
+        this.dispatchEvent(
+          new CustomEvent<OutputData>("editor-save", {
+            detail: outputData,
+            bubbles: true,
+          })
+        );
       }
     } catch (error) {
-      console.error('Saving failed:', error);
-      this.dispatchEvent(new CustomEvent('editor-error', {
-        detail: error,
-        bubbles: true
-      }));
+      console.error("Saving failed:", error);
+      this.dispatchEvent(
+        new CustomEvent("editor-error", {
+          detail: error,
+          bubbles: true,
+        })
+      );
     }
   }
 
@@ -404,18 +616,28 @@ class EditorComponent extends HTMLElement {
 
     try {
       const outputData = await this.editor.save();
-      console.log('Preview data:', outputData);
+      const html = this.renderBlocks(outputData.blocks);
+
+      const modal = this.querySelector<HTMLDivElement>("#preview-modal");
+      const body = this.querySelector<HTMLDivElement>("#preview-body");
+
+      if (body) {
+        body.innerHTML = html || "<p>No content to preview.</p>";
+      }
+
+      if (modal) {
+        modal.style.display = "block";
+      }
 
       // Dispatch preview event
-      this.dispatchEvent(new CustomEvent<OutputData>('editor-preview', {
-        detail: outputData,
-        bubbles: true
-      }));
-
-      alert('Preview data logged to console. Your post structure:\n' +
-        JSON.stringify(outputData, null, 2).substring(0, 200) + '...');
+      this.dispatchEvent(
+        new CustomEvent<OutputData>("editor-preview", {
+          detail: outputData,
+          bubbles: true,
+        })
+      );
     } catch (error) {
-      console.error('Preview failed:', error);
+      console.error("Preview failed:", error);
     }
   }
 
@@ -430,15 +652,56 @@ class EditorComponent extends HTMLElement {
     return await this.editor.save();
   }
 
-  // Method to set editor data
-  setData(data: OutputData) {
-    if (this.editor) {
-      this.editor.render(data);
+  private renderBlocks(blocks: any[]): string {
+    return blocks
+      .map((block) => {
+        switch (block.type) {
+          case "header":
+            return `<h${block.data.level}>${this.escapeHtml(block.data.text)}</h${block.data.level}>`;
+          case "paragraph":
+            return `<p>${this.escapeHtml(block.data.text)}</p>`;
+          case "list":
+            const listType = block.data.style === "ordered" ? "ol" : "ul";
+            const items = block.data.items
+              .map((item: string) => `<li>${this.escapeHtml(item)}</li>`)
+              .join("");
+            return `<${listType}>${items}</${listType}>`;
+          case "code":
+            return `<pre><code>${this.escapeHtml(block.data.code)}</code></pre>`;
+          case "quote":
+            const quoteHtml = `<blockquote>${this.escapeHtml(block.data.text)}`;
+            if (block.data.caption) {
+              return `${quoteHtml}<cite>${this.escapeHtml(block.data.caption)}</cite></blockquote>`;
+            }
+            return `${quoteHtml}</blockquote>`;
+          case "image":
+            const imgSrc = block.data.file?.url || "";
+            const caption = block.data.caption || "";
+            return `<figure><img src="${this.escapeHtml(imgSrc)}" alt="${this.escapeHtml(caption)}"><figcaption>${this.escapeHtml(caption)}</figcaption></figure>`;
+          case "delimiter":
+            return "<hr>";
+          default:
+            return "";
+        }
+      })
+      .join("");
+  }
+
+  private escapeHtml(text: string): string {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  private closePreview() {
+    const modal = this.querySelector<HTMLDivElement>("#preview-modal");
+    if (modal) {
+      modal.style.display = "none";
     }
   }
 }
 
 // Register the custom element
-customElements.define('editor-component', EditorComponent);
+customElements.define("editor-component", EditorComponent);
 
 export default EditorComponent;
