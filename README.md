@@ -92,13 +92,6 @@ The dev server will start at `http://localhost:4321`
 
 _Use `CTRL` instead of `CMD` on Windows/Linux_
 
-## 📚 Documentation
-
-- **[FEATURES.md](./FEATURES.md)** - Complete feature list
-- **[EDITOR_GUIDE.md](./EDITOR_GUIDE.md)** - How to use the editor
-- **[EDITOR_IMPLEMENTATION.md](./EDITOR_IMPLEMENTATION.md)** - Editor.js details
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture overview
-
 ## 🏗️ Tech Stack
 
 - **Framework**: [Astro](https://astro.build) - Static generation + SSR
