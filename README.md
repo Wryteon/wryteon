@@ -132,7 +132,40 @@ npm run build
 npm run preview
 ```
 
-## �� Customization
+## 🧪 Testing
+
+### Unit tests (Vitest)
+
+```bash
+npm test
+```
+
+Watch mode:
+
+```bash
+npm run test:watch
+```
+
+### E2E smoke tests (Playwright)
+
+Install browser binaries once:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+Run the smoke suite:
+
+```bash
+npm run test:e2e
+```
+
+Notes:
+
+- The E2E suite starts the app automatically and uses a dedicated SQLite DB at `.db/e2e.sqlite`.
+- Generated Playwright artifacts (like `test-results/`) are ignored via `.gitignore`.
+
+## 🛠️ Customization
 
 ### Styling
 
