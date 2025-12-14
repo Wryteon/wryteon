@@ -2,27 +2,90 @@
 export interface Props {
   data: {
     style: string;
-    items: string[];
+    items: unknown;
   };
 }
 
 const { data } = Astro.props;
-const isOrdered = data.style === 'ordered';
+
+type RawListItem =
+  | string
+  | {
+      content?: unknown;
+      meta?: unknown;
+      items?: unknown;
+    };
+
+type NormalizedListItem = {
+  html: string;
+  checked?: boolean;
+};
+
+const isOrdered = data.style === "ordered";
+const isChecklist = data.style === "checklist";
+
+function normalizeItems(raw: unknown): NormalizedListItem[] {
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((entry): NormalizedListItem | null => {
+      if (typeof entry === "string") {
+        return { html: entry };
+      }
+
+      if (typeof entry !== "object" || entry === null) {
+        return null;
+      }
+
+      const item = entry as RawListItem;
+      const html =
+        typeof (item as { content?: unknown }).content === "string"
+          ? ((item as { content: string }).content ?? "")
+          : "";
+
+      const meta = (item as { meta?: unknown }).meta;
+      const checked =
+        typeof meta === "object" &&
+        meta !== null &&
+        typeof (meta as { checked?: unknown }).checked === "boolean"
+          ? (meta as { checked: boolean }).checked
+          : undefined;
+
+      return { html, checked };
+    })
+    .filter((item): item is NormalizedListItem => item !== null);
+}
+
+const items = normalizeItems(data.items);
 ---
 
-{isOrdered ? (
-  <ol>
-    {data.items.map((item: string) => (
-      <li set:html={item} />
-    ))}
-  </ol>
-) : (
-  <ul>
-    {data.items.map((item: string) => (
-      <li set:html={item} />
-    ))}
-  </ul>
-)}
+{
+  isOrdered ? (
+    <ol>
+      {items.map((item) => (
+        <li>
+          <span set:html={item.html} />
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <ul class={isChecklist ? "checklist" : undefined}>
+      {items.map((item) => (
+        <li>
+          {isChecklist && (
+            <input
+              class="check"
+              type="checkbox"
+              checked={Boolean(item.checked)}
+              disabled
+            />
+          )}
+          <span set:html={item.html} />
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 <style>
   ol,
@@ -34,6 +97,21 @@ const isOrdered = data.style === 'ordered';
   li {
     line-height: 1.6;
     margin-bottom: 8px;
+  }
+
+  .checklist {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .check {
+    margin-top: 4px;
   }
 
   ol {
