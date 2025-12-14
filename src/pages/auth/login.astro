@@ -49,11 +49,16 @@ if (Astro.request.method === "POST") {
         // Create session and set cookie
         const newSessionToken = await createSession(result.userId);
 
+        const forwardedProto = Astro.request.headers.get("x-forwarded-proto");
+        const requestUrl = new URL(Astro.request.url);
+        const isSecure =
+          requestUrl.protocol === "https:" || forwardedProto === "https";
+
         // Set secure HTTP-only cookie and redirect
         const response = Astro.redirect("/admin");
         response.headers.set(
           "Set-Cookie",
-          `session=${newSessionToken}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`
+          `session=${newSessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}${isSecure ? "; Secure" : ""}`
         );
         return response;
       } else {
