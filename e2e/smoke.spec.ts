@@ -41,4 +41,13 @@ test("can create and view a published post", async ({ page }) => {
   // Basic navigation back into admin edit page
   await page.locator('a.edit-link[href^="/admin/"]').click();
   await expect(page.locator("#title-input")).toHaveValue(title);
+
+  // Preview should open a dedicated SSR page (new tab)
+  const [previewPage] = await Promise.all([
+    page.context().waitForEvent("page"),
+    page.locator("editor-component #preview-btn").click(),
+  ]);
+
+  await previewPage.waitForURL(/\/admin\/preview$/);
+  await expect(previewPage.locator(".post-title")).toHaveText(title);
 });

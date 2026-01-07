@@ -1,0 +1,110 @@
+---
+import PostPage from "../../general/components/PostPage.astro";
+import { validateSession } from "../../lib/auth";
+import type { PostRecord } from "../../lib/db";
+import type { EditorDocument } from "../../types/editor";
+import type { PostStatus } from "../../types/post";
+
+export const prerender = false;
+
+// Validate session
+const cookies = Astro.request.headers.get("cookie") || "";
+const sessionToken = cookies
+  .split(";")
+  .find((c) => c.trim().startsWith("session="))
+  ?.split("=")[1];
+
+const session = sessionToken ? await validateSession(sessionToken) : null;
+if (!session) {
+  return Astro.redirect("/auth/login");
+}
+
+type PreviewPayload = {
+  title: string;
+  slug: string;
+  blocks: EditorDocument;
+  status?: PostStatus;
+};
+
+const isPostStatus = (value: unknown): value is PostStatus =>
+  value === "draft" || value === "published";
+
+const isEditorDocument = (value: unknown): value is EditorDocument => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as { blocks?: unknown };
+  if (!Array.isArray(candidate.blocks)) {
+    return false;
+  }
+
+  return candidate.blocks.every((block) => {
+    if (typeof block !== "object" || block === null) {
+      return false;
+    }
+
+    const typedBlock = block as { type?: unknown; data?: unknown };
+    return (
+      typeof typedBlock.type === "string" &&
+      typeof typedBlock.data === "object" &&
+      typedBlock.data !== null
+    );
+  });
+};
+
+const isPreviewPayload = (value: unknown): value is PreviewPayload => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.title === "string" &&
+    typeof candidate.slug === "string" &&
+    isEditorDocument(candidate.blocks)
+  );
+};
+
+if (Astro.request.method !== "POST") {
+  return Astro.redirect("/admin");
+}
+
+const formData = await Astro.request.formData();
+const rawPayload = formData.get("payload");
+
+let payload: PreviewPayload | null = null;
+if (typeof rawPayload === "string") {
+  try {
+    const parsed = JSON.parse(rawPayload) as unknown;
+    if (isPreviewPayload(parsed)) {
+      payload = parsed;
+    }
+  } catch {
+    payload = null;
+  }
+}
+
+if (!payload) {
+  return new Response("Invalid preview payload", { status: 400 });
+}
+
+const now = new Date();
+const status = isPostStatus(payload.status) ? payload.status : "draft";
+const slug = payload.slug.length > 0 ? payload.slug : "new-post";
+
+const previewPost: PostRecord = {
+  id: slug,
+  title: payload.title.length > 0 ? payload.title : "Preview",
+  slug,
+  blocks: payload.blocks,
+  status,
+  createdAt: now,
+  updatedAt: now,
+  publishedAt: null,
+};
+
+const backLinkHref = slug === "new-post" ? "/admin/new-post" : `/admin/${slug}`;
+---
+
+<PostPage post={previewPost} backLinkHref={backLinkHref} />
