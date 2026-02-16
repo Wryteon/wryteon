@@ -153,6 +153,15 @@ Run the smoke suite:
 npm run test:e2e
 ```
 
+The smoke tests expect the same admin credentials as the seed script:
+
+```bash
+export WRYTEON_ADMIN_USERNAME="admin"
+export WRYTEON_ADMIN_EMAIL="admin@example.com"
+export WRYTEON_ADMIN_PASSWORD="change-me"
+npm run test:e2e
+```
+
 Notes:
 
 - The E2E suite starts the app automatically and uses a dedicated SQLite DB at `.db/e2e.sqlite`.
@@ -193,20 +202,32 @@ With this setup, Astro connects to `.db/dev.sqlite` and preserves your data betw
 
 ### Example 1: Blog Post
 
-```
+````
 1. Go to /admin/new-post
 2. Add heading "My First Post"
 3. Add paragraph with intro
-4. Add image
+   - Copy `db/seed.ts.backup` to `db/seed.ts`.
+   - Provide admin credentials via environment variables (the seed script does not include defaults):
+
+```bash
+export WRYTEON_ADMIN_USERNAME="admin"
+export WRYTEON_ADMIN_EMAIL="admin@example.com"
+export WRYTEON_ADMIN_PASSWORD="change-me"
+
+npx astro db execute db/seed.ts --remote
+````
+
 5. Add paragraph with body
 6. Add code block for example
 7. Add quote for emphasis
 8. Click Save → Publish
+
 ```
 
 ### Example 2: Tutorial
 
 ```
+
 1. Create post "Getting Started"
 2. Add heading "Introduction"
 3. Add paragraph
@@ -215,6 +236,7 @@ With this setup, Astro connects to `.db/dev.sqlite` and preserves your data betw
 6. Add code blocks for examples
 7. Add heading "Conclusion"
 8. Publish
+
 ```
 
 ## 🛣️ Roadmap
@@ -259,3 +281,4 @@ For questions or issues:
 **Ready to start blogging? Create your first post at `/admin/new-post` 🚀**
 
 Made with ❤️ for content creators
+```

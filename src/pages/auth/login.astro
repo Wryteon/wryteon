@@ -58,7 +58,7 @@ if (Astro.request.method === "POST") {
         const response = Astro.redirect("/admin");
         response.headers.set(
           "Set-Cookie",
-          `session=${newSessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}${isSecure ? "; Secure" : ""}`
+          `session=${newSessionToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}${isSecure ? "; Secure" : ""}`,
         );
         return response;
       } else {
@@ -245,12 +245,6 @@ if (Astro.request.method === "POST") {
 
         <button type="submit" class="submit-btn">Sign In</button>
       </form>
-
-      <div class="info">
-        <strong>Demo Credentials:</strong><br />
-        Username: <code>admin</code><br />
-        Password: <code>admin123</code>
-      </div>
     </div>
   </body>
 </html>

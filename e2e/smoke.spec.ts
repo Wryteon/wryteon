@@ -1,9 +1,23 @@
 import { test, expect } from "@playwright/test";
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(
+      `Missing required environment variable: ${name}. ` +
+        `Set it before running Playwright.`,
+    );
+  }
+  return value.trim();
+}
+
 async function loginAsAdmin(page) {
+  const username = requireEnv("WRYTEON_ADMIN_USERNAME");
+  const password = requireEnv("WRYTEON_ADMIN_PASSWORD");
+
   await page.goto("/auth/login");
-  await page.locator('input[name="username"]').fill("admin");
-  await page.locator('input[name="password"]').fill("admin123");
+  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="password"]').fill(password);
   await Promise.all([
     page.waitForURL(/\/admin(\/|$)/),
     page.locator('button[type="submit"]').click(),
@@ -13,7 +27,7 @@ async function loginAsAdmin(page) {
 test("login works", async ({ page }) => {
   await loginAsAdmin(page);
   await expect(
-    page.getByRole("heading", { name: "Welcome to Wryteon Admin" })
+    page.getByRole("heading", { name: "Welcome to Wryteon Admin" }),
   ).toBeVisible();
 });
 
