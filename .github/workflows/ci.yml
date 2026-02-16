@@ -13,6 +13,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      WRYTEON_ADMIN_USERNAME: admin
+      WRYTEON_ADMIN_EMAIL: admin@example.com
+      WRYTEON_ADMIN_PASSWORD: ci-password
+
     strategy:
       fail-fast: false
       matrix:
