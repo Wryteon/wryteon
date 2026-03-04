@@ -34,6 +34,10 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${port}`,
     trace: "retain-on-failure",
+    extraHTTPHeaders: {
+      Origin: `http://127.0.0.1:${port}`,
+      Referer: `http://127.0.0.1:${port}/admin`,
+    },
   },
   projects: [
     {

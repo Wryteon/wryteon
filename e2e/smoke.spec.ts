@@ -65,3 +65,57 @@ test("can create and view a published post", async ({ page }) => {
   await previewPage.waitForURL(/\/admin\/preview$/);
   await expect(previewPage.locator(".post-title")).toHaveText(title);
 });
+
+test("can upload an image and render it in a post", async ({ page }) => {
+  page.on("dialog", (dialog) => dialog.accept());
+
+  await loginAsAdmin(page);
+
+  const slug = `e2e-image-${Date.now()}`;
+  const title = `E2E Image ${slug}`;
+
+  const uploadResponse = await page.request.post("/api/upload", {
+    multipart: {
+      image: {
+        name: "hello.png",
+        mimeType: "image/png",
+        buffer: Buffer.from("hello"),
+      },
+    },
+  });
+
+  expect(uploadResponse.ok()).toBe(true);
+  const uploadPayload = await uploadResponse.json();
+  const imageUrl = uploadPayload?.file?.url as string | undefined;
+  expect(imageUrl).toMatch(/^\/uploads\//);
+
+  const saveResponse = await page.request.post(`/admin/${slug}`, {
+    data: {
+      id: slug,
+      title,
+      slug,
+      status: "published",
+      publishedAt: new Date().toISOString(),
+      blocks: {
+        blocks: [
+          {
+            type: "image",
+            data: {
+              file: { url: imageUrl },
+              caption: "Uploaded via E2E",
+            },
+          },
+        ],
+      },
+    },
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  expect(saveResponse.ok()).toBe(true);
+
+  await page.goto(`/${slug}`);
+  await expect(page.locator(".post-title")).toHaveText(title);
+  await expect(page.locator(`img[src="${imageUrl}"]`)).toBeVisible();
+});

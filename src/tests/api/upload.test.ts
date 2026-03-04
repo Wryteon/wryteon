@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { POST } from "./upload";
+import { POST } from "../../pages/api/upload";
 import path from "node:path";
 import { readFile, unlink } from "node:fs/promises";
 
