@@ -2,6 +2,18 @@ import { db, Users } from "astro:db";
 import { hashPassword } from "../src/lib/auth";
 import crypto from "crypto";
 
+async function maybeLoadDotenv(): Promise<void> {
+  // `astro db execute` does not always load `.env` automatically.
+  // Load it on-demand for local dev, but stay safe in environments
+  // where `dotenv` might not be installed.
+  try {
+    const dotenv = await import("dotenv");
+    dotenv.config();
+  } catch {
+    // ignore
+  }
+}
+
 function getEnv(name: string): string | null {
   const value = process.env[name];
   if (typeof value !== "string") return null;
@@ -10,6 +22,16 @@ function getEnv(name: string): string | null {
 }
 
 export default async function seed() {
+  // If env vars are missing, try to populate them from `.env`.
+  // (dotenv won't override already-set env vars by default.)
+  if (
+    !process.env.WRYTEON_ADMIN_USERNAME ||
+    !process.env.WRYTEON_ADMIN_EMAIL ||
+    !process.env.WRYTEON_ADMIN_PASSWORD
+  ) {
+    await maybeLoadDotenv();
+  }
+
   const username = getEnv("WRYTEON_ADMIN_USERNAME");
   const email = getEnv("WRYTEON_ADMIN_EMAIL");
   const adminPassword = getEnv("WRYTEON_ADMIN_PASSWORD");
