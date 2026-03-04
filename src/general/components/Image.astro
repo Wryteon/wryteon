@@ -1,32 +1,34 @@
 ---
 export interface Props {
-    data: {
-        url: string;
-        caption?: string;
-        alt?: string;
-    };
+  data: {
+    url: string;
+    file?: { url?: string };
+    caption?: string;
+    alt?: string;
+  };
 }
 
 const { data } = Astro.props;
+const src = data.url ?? data.file?.url ?? "";
 ---
 
 <figure>
-    <img src={data.url} alt={data.alt || data.caption || ""} />
-    {data.caption && <figcaption>{data.caption}</figcaption>}
+  <img src={src} alt={data.alt || data.caption || ""} />
+  {data.caption && <figcaption>{data.caption}</figcaption>}
 </figure>
 
 <style>
-    figure {
-        margin: 1rem 0;
-        text-align: center;
-    }
-    img {
-        max-width: 100%;
-        height: auto;
-    }
-    figcaption {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        color: #666;
-    }
+  figure {
+    margin: 1rem 0;
+    text-align: center;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+  }
 </style>

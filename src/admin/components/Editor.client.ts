@@ -340,7 +340,7 @@ class EditorComponent extends HTMLElement {
             byUrl: "/api/fetchUrl",
           },
           field: "image",
-          types: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+          types: "image/*",
           captionPlaceholder: "Add image caption...",
           buttonText: "Choose an Image",
         },
@@ -377,7 +377,7 @@ class EditorComponent extends HTMLElement {
           },
         },
         bubbles: true,
-      })
+      }),
     );
   }
 
@@ -394,7 +394,7 @@ class EditorComponent extends HTMLElement {
           new CustomEvent<OutputData>("editor-save", {
             detail: outputData,
             bubbles: true,
-          })
+          }),
         );
       }
     } catch (error) {
@@ -403,7 +403,7 @@ class EditorComponent extends HTMLElement {
         new CustomEvent("editor-error", {
           detail: error,
           bubbles: true,
-        })
+        }),
       );
     }
   }
@@ -452,7 +452,7 @@ class EditorComponent extends HTMLElement {
         new CustomEvent<OutputData>("editor-preview", {
           detail: outputData,
           bubbles: true,
-        })
+        }),
       );
     } catch (error) {
       console.error("Preview failed:", error);
