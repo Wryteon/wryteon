@@ -158,6 +158,14 @@ See `.env.example` for a complete list of supported variables.
 
 > **⚠️ Important**: The `ASTRO_DB_REMOTE_URL` is baked into the server bundle at image build time. If you change it, you must rebuild the Docker image (`docker compose up --build`). The runtime env var only affects `astro db push` and `astro db execute` commands; the SSR server uses the build-time value.
 
+### Migrations and rollbacks
+
+- On every container start, the entrypoint runs `astro db push` against the persistent DB volume. This keeps schema changes forward-only and automatic.
+- Recommended release flow: take a DB backup first, deploy new image, then let startup apply schema updates.
+- There are no explicit down migrations in this setup. If you must roll back to an older image after a schema change, restore the DB from backup.
+- Prefer additive schema changes (add table/column) in one release, and destructive cleanup (drop/rename) in a later release.
+- For production hardening, document and test a backup/restore command before each release.
+
 ## 🧪 Testing
 
 ### Unit tests (Vitest)
