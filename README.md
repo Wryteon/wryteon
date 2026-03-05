@@ -118,12 +118,45 @@ src/
 ## 🚀 Building for Production
 
 ```bash
-# Build the static site
+# Build the app (SSR)
 npm run build
 
-# Preview the build locally
-npm run preview
+# Start the production server (uses dist/server/entry.mjs)
+# Tip: set HOST=0.0.0.0 when running in Docker.
+npm run start
 ```
+
+## 🐳 Docker (Tier 1)
+
+This project supports a straightforward “run anywhere” Docker deployment (single container + persistent volumes).
+
+### Quick start (recommended)
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:4321`.
+
+### Persistence
+
+- Database is stored at `/data/wryteon.sqlite` inside the container (mounted as a volume by `docker-compose.yml`).
+- Docker uses Astro DB "remote" mode with a local file URL: `ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite`.
+- Uploaded images are written to `public/uploads` (also mounted as a volume).
+
+### Admin user
+
+On container start, the entrypoint will:
+
+1. Run `astro db push` (idempotent)
+2. Run `astro db execute db/seed.ts --remote` to create a default admin user if these env vars are set:
+   - `WRYTEON_ADMIN_USERNAME`
+   - `WRYTEON_ADMIN_EMAIL`
+   - `WRYTEON_ADMIN_PASSWORD`
+
+See `.env.example` for a complete list of supported variables.
+
+> **⚠️ Important**: The `ASTRO_DB_REMOTE_URL` is baked into the server bundle at image build time. If you change it, you must rebuild the Docker image (`docker compose up --build`). The runtime env var only affects `astro db push` and `astro db execute` commands; the SSR server uses the build-time value.
 
 ## 🧪 Testing
 

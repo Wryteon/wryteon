@@ -1,0 +1,21 @@
+services:
+  wryteon:
+    build: .
+    ports:
+      - "4321:4321"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4321
+      ASTRO_DB_REMOTE_URL: file:/data/wryteon.sqlite
+      # Optional: create a default admin on first run
+      WRYTEON_ADMIN_USERNAME: admin
+      WRYTEON_ADMIN_EMAIL: admin@example.com
+      WRYTEON_ADMIN_PASSWORD: change-me
+    volumes:
+      - wryteon-data:/data
+      - wryteon-uploads:/app/public/uploads
+    restart: unless-stopped
+
+volumes:
+  wryteon-data:
+  wryteon-uploads:

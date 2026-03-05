@@ -1,6 +1,8 @@
 import { db, Users } from "astro:db";
-import { hashPassword } from "../src/lib/auth";
+import { hash } from "bcrypt";
 import crypto from "crypto";
+
+const SALT_ROUNDS = 10;
 
 async function maybeLoadDotenv(): Promise<void> {
   // `astro db execute` does not always load `.env` automatically.
@@ -48,7 +50,7 @@ export default async function seed() {
     return;
   }
 
-  const passwordHash = await hashPassword(adminPassword);
+  const passwordHash = await hash(adminPassword, SALT_ROUNDS);
 
   try {
     await db.insert(Users).values({
