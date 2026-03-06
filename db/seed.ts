@@ -1,8 +1,11 @@
-import { db, Users } from "astro:db";
+import { db, eq } from "astro:db";
+import { asDrizzleTable } from "@astrojs/db/utils";
+import { Users } from "./config";
 import { hash } from "bcrypt";
 import crypto from "crypto";
 
 const SALT_ROUNDS = 10;
+const UsersTable = asDrizzleTable("Users", Users);
 
 async function maybeLoadDotenv(): Promise<void> {
   // `astro db execute` does not always load `.env` automatically.
@@ -21,6 +24,26 @@ function getEnv(name: string): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+async function adminExists(username: string, email: string): Promise<boolean> {
+  const byUsername = await db
+    .select({ id: UsersTable.id })
+    .from(UsersTable)
+    .where(eq(UsersTable.username, username))
+    .limit(1);
+
+  if (byUsername.length > 0) {
+    return true;
+  }
+
+  const byEmail = await db
+    .select({ id: UsersTable.id })
+    .from(UsersTable)
+    .where(eq(UsersTable.email, email))
+    .limit(1);
+
+  return byEmail.length > 0;
 }
 
 export default async function seed() {
@@ -50,10 +73,15 @@ export default async function seed() {
     return;
   }
 
+  if (await adminExists(username, email)) {
+    console.log("ℹ️  Admin user already exists; skipping seed");
+    return;
+  }
+
   const passwordHash = await hash(adminPassword, SALT_ROUNDS);
 
   try {
-    await db.insert(Users).values({
+    await db.insert(UsersTable).values({
       id: crypto.randomUUID(),
       username,
       email,
@@ -67,6 +95,7 @@ export default async function seed() {
     console.log("   Password: (set via WRYTEON_ADMIN_PASSWORD)");
     console.log("   (Change this password after first login!)");
   } catch (error) {
-    console.log("ℹ️  Admin user already exists or seed already ran");
+    console.error("❌ Failed to create default admin user", error);
+    throw error;
   }
 }
