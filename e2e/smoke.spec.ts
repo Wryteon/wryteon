@@ -87,7 +87,12 @@ test("can upload an image and render it in a post", async ({ page }) => {
   expect(uploadResponse.ok()).toBe(true);
   const uploadPayload = await uploadResponse.json();
   const imageUrl = uploadPayload?.file?.url as string | undefined;
-  expect(imageUrl).toMatch(/^\/uploads\//);
+  expect(imageUrl).toMatch(/^\/media\//);
+
+  const mediaResponse = await page.request.get(imageUrl ?? "");
+  expect(mediaResponse.ok()).toBe(true);
+  expect(mediaResponse.headers()["content-type"]).toContain("image/png");
+  expect((await mediaResponse.body()).toString("utf-8")).toBe("hello");
 
   const saveResponse = await page.request.post(`/admin/${slug}`, {
     data: {

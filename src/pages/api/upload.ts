@@ -2,10 +2,9 @@ import type { APIRoute } from "astro";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { getMediaUrl, getUploadsDir } from "../../lib/uploads";
 
 export const prerender = false;
-
-const UPLOADS_DIR = path.resolve("./public/uploads");
 
 export const POST: APIRoute = async ({ request }) => {
   const formData = await request.formData();
@@ -21,14 +20,15 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  await mkdir(UPLOADS_DIR, { recursive: true });
+  const uploadsDir = getUploadsDir();
+  await mkdir(uploadsDir, { recursive: true });
 
   const providedName = file instanceof File ? file.name : "";
   const extension =
     path.extname(providedName) ||
     `.${(file.type?.split("/")[1] ?? "bin").replace(/\W/g, "")}`;
   const filename = `${randomUUID()}${extension}`;
-  const filePath = path.join(UPLOADS_DIR, filename);
+  const filePath = path.join(uploadsDir, filename);
 
   const buffer = Buffer.from(await file.arrayBuffer());
   await writeFile(filePath, buffer);
@@ -37,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
     JSON.stringify({
       success: 1,
       file: {
-        url: `/uploads/${filename}`,
+        url: getMediaUrl(filename),
       },
     }),
     {

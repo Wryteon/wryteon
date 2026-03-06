@@ -7,13 +7,14 @@ services:
       HOST: 0.0.0.0
       PORT: 4321
       ASTRO_DB_REMOTE_URL: file:/data/wryteon.sqlite
+      UPLOADS_DIR: /data/uploads
       # Optional: create a default admin on first run
       WRYTEON_ADMIN_USERNAME: admin
       WRYTEON_ADMIN_EMAIL: admin@example.com
       WRYTEON_ADMIN_PASSWORD: change-me
     volumes:
       - wryteon-data:/data
-      - wryteon-uploads:/app/public/uploads
+      - wryteon-uploads:/data/uploads
     restart: unless-stopped
 
 volumes:

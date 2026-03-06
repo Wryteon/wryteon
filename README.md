@@ -142,7 +142,7 @@ Then open `http://localhost:4321`.
 
 - Database is stored at `/data/wryteon.sqlite` inside the container (mounted as a volume by `docker-compose.yml`).
 - Docker uses Astro DB "remote" mode with a local file URL: `ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite`.
-- Uploaded images are written to `public/uploads` (also mounted as a volume).
+- Uploaded images are written to `/data/uploads` and served through `/media/<filename>`.
 
 ### Admin user
 
