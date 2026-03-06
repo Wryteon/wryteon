@@ -9,14 +9,16 @@ set -eu
 # Tier-1 Docker uses Astro DB "remote" mode with a file: URL so the SSR server
 # and CLI commands (db push/execute) all talk to the same database.
 : "${ASTRO_DB_REMOTE_URL:=file:/data/wryteon.sqlite}"
+: "${UPLOADS_DIR:=/data/uploads}"
 
-export HOST PORT ASTRO_DB_REMOTE_URL
+export HOST PORT ASTRO_DB_REMOTE_URL UPLOADS_DIR
 
 # Ensure writable paths exist (mount these as volumes for persistence).
-mkdir -p /data /app/public/uploads
+mkdir -p /data "$UPLOADS_DIR"
 
 echo "[wryteon] Using HOST=$HOST PORT=$PORT"
 echo "[wryteon] Using ASTRO_DB_REMOTE_URL=$ASTRO_DB_REMOTE_URL"
+echo "[wryteon] Using UPLOADS_DIR=$UPLOADS_DIR"
 
 # Ensure schema exists (idempotent).
 # NOTE: `astro db push` always targets the configured remote database.

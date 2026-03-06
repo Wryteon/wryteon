@@ -37,7 +37,7 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
 
 # Create a writable data dir for persistent DB (bind/volume mount recommended)
-RUN mkdir -p /data /app/public/uploads
+RUN mkdir -p /data/uploads
 
 COPY docker/start.sh /usr/local/bin/wryteon-start
 RUN chmod +x /usr/local/bin/wryteon-start
