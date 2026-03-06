@@ -78,7 +78,7 @@ The dev server will start at `http://localhost:4321`
 | URL             | Purpose                          |
 | --------------- | -------------------------------- |
 | `/`             | Homepage - shows published posts |
-| `/posts/[slug]` | Individual post page             |
+| `/[slug]`       | Individual post page             |
 
 ## ⌨️ Editor Shortcuts
 
@@ -98,28 +98,33 @@ _Use `CTRL` instead of `CMD` on Windows/Linux_
 - **Editor**: [Editor.js](https://editorjs.io) - Block-based content editing
 - **Language**: TypeScript & Astro components
 - **Styling**: Scoped CSS in components
-- **Database**: In-memory (ready for Astro DB migration)
+- **Database**: Astro DB backed by SQLite/libSQL
 
 ## 📁 Project Structure
 
 ```
 src/
-├── components/
-│   ├── Editor.client.ts        # Editor.js integration
-│   └── blocks/                 # Block type renderers
-├── lib/
-│   └── db.ts                   # Data store & functions
+├── admin/
+│   └── components/             # Admin editor integration
+├── general/
+│   ├── components/             # Public post renderers
+│   └── lib/                    # Rendering helpers
+├── layouts/
+├── lib/                        # Auth, DB, and upload helpers
 └── pages/
-    ├── admin/                  # Admin interface
-    ├── general/                # Public posts area
-    └── index.astro             # Homepage
+   ├── admin/                  # Admin interface
+   ├── api/                    # Mutation endpoints
+   ├── auth/                   # Login/logout routes
+   ├── media/                  # Uploaded media endpoint
+   ├── [slug].astro            # Public post page
+   └── index.astro             # Homepage
 ```
 
 ## 🚀 Building for Production
 
 ```bash
-# Build the app (SSR)
-npm run build
+# Build the app in Astro DB remote mode
+ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite npm run build -- --remote
 
 # Start the production server (uses dist/server/entry.mjs)
 # Tip: set HOST=0.0.0.0 when running in Docker.
@@ -137,6 +142,45 @@ docker compose up --build
 ```
 
 Then open `http://localhost:4321`.
+
+### Run without Compose
+
+Build the image:
+
+```bash
+docker build -t wryteon:local .
+```
+
+Run with a named Docker volume:
+
+```bash
+docker run --rm -p 4321:4321 \
+   -e HOST=0.0.0.0 \
+   -e PORT=4321 \
+   -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
+   -e UPLOADS_DIR=/data/uploads \
+   -e WRYTEON_ADMIN_USERNAME=admin \
+   -e WRYTEON_ADMIN_EMAIL=admin@example.com \
+   -e WRYTEON_ADMIN_PASSWORD=change-me \
+   -v wryteon-data:/data \
+   wryteon:local
+```
+
+Run with a bind mount for easy local inspection:
+
+```bash
+mkdir -p "$PWD/.docker-data"
+docker run --rm -p 4321:4321 \
+   -e HOST=0.0.0.0 \
+   -e PORT=4321 \
+   -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
+   -e UPLOADS_DIR=/data/uploads \
+   -e WRYTEON_ADMIN_USERNAME=admin \
+   -e WRYTEON_ADMIN_EMAIL=admin@example.com \
+   -e WRYTEON_ADMIN_PASSWORD=change-me \
+   -v "$PWD/.docker-data:/data" \
+   wryteon:local
+```
 
 ### Persistence
 
@@ -180,6 +224,8 @@ Watch mode:
 npm run test:watch
 ```
 
+The upload unit tests cover both the write path and the `/media/<filename>` serving route.
+
 ### E2E smoke tests (Playwright)
 
 Install browser binaries once:
@@ -206,84 +252,50 @@ npm run test:e2e
 Notes:
 
 - The E2E suite starts the app automatically and uses a dedicated SQLite DB at `.db/e2e.sqlite`.
+- The upload smoke test verifies that `/api/upload` returns a `/media/...` URL and that the image is fetchable and renderable in a published post.
 - Generated Playwright artifacts (like `test-results/`) are ignored via `.gitignore`.
 
 ## 🛠️ Customization
 
 ### Styling
 
-Edit component styles in `src/components/` files. Each component has scoped CSS.
+Edit styles in the Astro components under `src/admin/components/`, `src/general/components/`, and `src/pages/`. Each component uses scoped CSS.
 
 ### Block Types
 
 Add new block types:
 
-1. Create component in `src/general/components/blocks/NewBlock.astro`
+1. Create component in `src/general/components/NewBlock.astro`
 2. Add to Editor.js in `src/admin/components/Editor.client.ts`
-3. Add case to BlockRenderer in `src/general/components/blocks/BlockRenderer.astro`
+3. Add case to BlockRenderer in `src/general/components/BlockRenderer.astro`
 
 ### Database
 
 Local development defaults to Astro DB's ephemeral `.astro/content.db`, which is recreated on each restart. To keep a persistent SQLite file instead, set up a local development database:
 
 1. **Configure the connection**
-   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./db/dev.sqlite`.
+   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./.db/dev.sqlite`.
 2. **Create the SQLite file**
    - Run `mkdir -p .db && touch .db/dev.sqlite` to ensure the file exists.
 3. **Push the schema**
    - Execute `npx astro db push --remote` to create the `Posts` table in the new database.
 4. **(Optional) Seed sample data**
-   - Copy `db/seed.ts.backup` to `db/seed.ts`, then run `npx astro db execute db/seed.ts --remote`.
+   - Set `WRYTEON_ADMIN_USERNAME`, `WRYTEON_ADMIN_EMAIL`, and `WRYTEON_ADMIN_PASSWORD`, then run `npx astro db execute db/seed.ts --remote`.
 5. **Use the remote flag in dev**
    - Start the dev server with `npm run dev -- --remote` (or `npx astro dev --remote`).
 
 With this setup, Astro connects to `.db/dev.sqlite` and preserves your data between restarts.
 
-## 🔄 Workflow Examples
+## 🔄 Typical Workflow
 
-### Example 1: Blog Post
-
-````
-1. Go to /admin/new-post
-2. Add heading "My First Post"
-3. Add paragraph with intro
-   - Copy `db/seed.ts.backup` to `db/seed.ts`.
-   - Provide admin credentials via environment variables (the seed script does not include defaults):
-
-```bash
-export WRYTEON_ADMIN_USERNAME="admin"
-export WRYTEON_ADMIN_EMAIL="admin@example.com"
-export WRYTEON_ADMIN_PASSWORD="change-me"
-
-npx astro db execute db/seed.ts --remote
-````
-
-5. Add paragraph with body
-6. Add code block for example
-7. Add quote for emphasis
-8. Click Save → Publish
-
-```
-
-### Example 2: Tutorial
-
-```
-
-1. Create post "Getting Started"
-2. Add heading "Introduction"
-3. Add paragraph
-4. Add heading "Step 1"
-5. Add ordered list of steps
-6. Add code blocks for examples
-7. Add heading "Conclusion"
-8. Publish
-
-```
+1. Seed an admin user with the `WRYTEON_ADMIN_*` environment variables set.
+2. Open `/auth/login` and sign in.
+3. Create or edit a post from `/admin/new-post` or `/admin/posts`.
+4. Upload images through the editor; they are stored under `UPLOADS_DIR` and served from `/media/<filename>`.
+5. Publish the post and verify it at `/<slug>`.
 
 ## 🛣️ Roadmap
 
-- [ ] Astro DB for persistent storage
-- [ ] User authentication
 - [ ] Media library
 - [ ] Post scheduling
 - [ ] Categories & tags
@@ -322,4 +334,3 @@ For questions or issues:
 **Ready to start blogging? Create your first post at `/admin/new-post` 🚀**
 
 Made with ❤️ for content creators
-```
