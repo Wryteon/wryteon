@@ -47,11 +47,12 @@ cd wryteon
 # Install dependencies
 npm install
 
-# Start development server
+# Start development server with the default ephemeral Astro DB
 npm run dev
 
-# Start development server with persisted db
-npm run dev -- --remote
+# For a persistent local SQLite database and admin login,
+# follow the "Database" section below first, then run:
+# npm run dev -- --remote
 ```
 
 The dev server will start at `http://localhost:4321`
@@ -274,17 +275,36 @@ Add new block types:
 Local development defaults to Astro DB's ephemeral `.astro/content.db`, which is recreated on each restart. To keep a persistent SQLite file instead, set up a local development database:
 
 1. **Configure the connection**
-   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./.db/dev.sqlite`.
+   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./data/wryteon.sqlite`.
 2. **Create the SQLite file**
-   - Run `mkdir -p .db && touch .db/dev.sqlite` to ensure the file exists.
+   - Run `mkdir -p data && touch data/wryteon.sqlite` to ensure the file exists.
 3. **Push the schema**
-   - Execute `npx astro db push --remote` to create the `Posts` table in the new database.
-4. **(Optional) Seed sample data**
+   - Execute `npx astro db push --remote` to create the app tables in the new database.
+4. **Seed sample data**
    - Set `WRYTEON_ADMIN_USERNAME`, `WRYTEON_ADMIN_EMAIL`, and `WRYTEON_ADMIN_PASSWORD`, then run `npx astro db execute db/seed.ts --remote`.
+   - This creates the initial admin user. If you want to log into `/auth/login`, you need this step or another way to create a user.
 5. **Use the remote flag in dev**
    - Start the dev server with `npm run dev -- --remote` (or `npx astro dev --remote`).
 
-With this setup, Astro connects to `.db/dev.sqlite` and preserves your data between restarts.
+With this setup, Astro connects to `data/wryteon.sqlite` and preserves your data between restarts.
+
+### First Local Run
+
+If you want a persistent local DB and a working admin login on your first run, use this sequence:
+
+```bash
+cp .env.example .env
+mkdir -p data && touch data/wryteon.sqlite
+npx astro db push --remote
+npx astro db execute db/seed.ts --remote
+npm run dev -- --remote
+```
+
+Notes:
+
+- `npm run dev` without `--remote` uses Astro DB's ephemeral local database.
+- `npm run dev -- --remote` requires `ASTRO_DB_REMOTE_URL` to point to a valid `file:` URL or remote libSQL URL.
+- `file:/data/wryteon.sqlite` is the Docker path. For local development in this repo, use `file:./data/wryteon.sqlite`.
 
 ## 🔄 Typical Workflow
 

@@ -26,8 +26,8 @@ pnpm-debug.log*
 # local db files
 *.sqlite
 
-# public uploads
-public/uploads/
+# data uploads
+data/uploads/
 
 # Playwright / E2E artifacts
 test-results/
