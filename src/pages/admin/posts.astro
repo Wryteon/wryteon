@@ -1,5 +1,5 @@
 ---
-import { getAllPosts, deletePost } from "../../lib/db";
+import { getAllPosts, deletePost, getSiteSettings } from "../../lib/db";
 import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
 
@@ -52,13 +52,14 @@ if (Astro.request.method === "DELETE") {
 }
 
 const posts: PostRecord[] = await getAllPosts();
+const settings = await getSiteSettings();
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>All Posts - Wryteon Admin</title>
+    <title>All Posts - {settings.blogName} Admin</title>
     <style>
       * {
         margin: 0;
@@ -312,11 +313,12 @@ const posts: PostRecord[] = await getAllPosts();
   <body>
     <div class="container">
       <nav class="navbar">
-        <div class="logo">🚀 Wryteon</div>
+        <div class="logo">🚀 {settings.blogName}</div>
         <ul class="nav-links">
           <li><a href="/admin">Dashboard</a></li>
           <li><a href="/admin/posts">All Posts</a></li>
-          <li><a href="/blog">View Site</a></li>
+          <li><a href="/admin/settings">Settings</a></li>
+          <li><a href="/">View Site</a></li>
           <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
         </ul>
       </nav>

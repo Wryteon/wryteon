@@ -1,6 +1,6 @@
 ---
 import BlockRenderer, { type Block } from "./BlockRenderer.astro";
-import type { PostRecord } from "../../lib/db";
+import { getSiteSettings, type PostRecord } from "../../lib/db";
 
 interface Props {
   post: PostRecord;
@@ -25,6 +25,8 @@ const publishedAt =
   post.publishedAt instanceof Date
     ? post.publishedAt
     : new Date(post.publishedAt ?? new Date());
+
+const settings = await getSiteSettings();
 ---
 
 <html lang="en">
@@ -33,7 +35,7 @@ const publishedAt =
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>{post.title} - Wryteon</title>
+    <title>{post.title} - {settings.blogName}</title>
     <meta name="description" content={firstBlockText.substring(0, 160)} />
     <style>
       body {

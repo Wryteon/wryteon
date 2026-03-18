@@ -1,0 +1,355 @@
+---
+import { getSiteSettings } from "../../lib/db";
+import { validateSession } from "../../lib/auth";
+
+export const prerender = false;
+
+const cookies = Astro.request.headers.get("cookie") || "";
+const sessionToken = cookies
+  .split(";")
+  .find((c) => c.trim().startsWith("session="))
+  ?.split("=")[1];
+
+const session = sessionToken ? await validateSession(sessionToken) : null;
+if (!session) {
+  return Astro.redirect("/auth/login");
+}
+
+const settings = await getSiteSettings();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Site Settings - {settings.blogName} Admin</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .navbar {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 20px;
+        list-style: none;
+        align-items: center;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: #666;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: #667eea;
+      }
+
+      .nav-links a.active {
+        color: #667eea;
+        font-weight: 600;
+      }
+
+      .logout-btn {
+        background-color: #ff6b6b;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background-color 0.3s;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .logout-btn:hover {
+        background-color: #ff5252;
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-bottom: 30px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        opacity: 0.9;
+      }
+
+      .back-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+      }
+
+      .settings-card {
+        background: white;
+        border-radius: 8px;
+        padding: 40px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .settings-card h1 {
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .settings-card .subtitle {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 32px;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 16px;
+        color: #333;
+        transition: border-color 0.2s;
+        outline: none;
+      }
+
+      input[type="text"]:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+      }
+
+      .field-hint {
+        font-size: 13px;
+        color: #888;
+        margin-top: 6px;
+      }
+
+      .save-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.2s;
+      }
+
+      .save-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .save-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .status-msg {
+        display: none;
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+      .status-msg.success {
+        display: block;
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status-msg.error {
+        display: block;
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      @media (max-width: 768px) {
+        .navbar {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .nav-links {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .logout-btn {
+          width: 100%;
+          text-align: center;
+        }
+
+        .settings-card {
+          padding: 24px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar">
+        <div class="logo">🚀 {settings.blogName}</div>
+        <ul class="nav-links">
+          <li><a href="/admin">Dashboard</a></li>
+          <li><a href="/admin/posts">All Posts</a></li>
+          <li><a href="/admin/settings" class="active">Settings</a></li>
+          <li><a href="/">View Site</a></li>
+          <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
+        </ul>
+      </nav>
+
+      <a href="/admin" class="back-link">← Back to Dashboard</a>
+
+      <div class="settings-card">
+        <h1>Site Settings</h1>
+        <p class="subtitle">
+          Customize your blog's name and headline as they appear across the
+          site.
+        </p>
+
+        <form id="settings-form">
+          <div class="form-group">
+            <label for="blogName">Blog Name</label>
+            <input
+              type="text"
+              id="blogName"
+              name="blogName"
+              value={settings.blogName}
+              placeholder="My Blog"
+              maxlength={100}
+              required
+            />
+            <p class="field-hint">
+              Shown in the site header, page titles, and browser tab.
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label for="blogHeadline">Headline</label>
+            <input
+              type="text"
+              id="blogHeadline"
+              name="blogHeadline"
+              value={settings.blogHeadline}
+              placeholder="A short description of your blog"
+              maxlength={200}
+            />
+            <p class="field-hint">
+              A short tagline displayed below the blog name on the homepage.
+            </p>
+          </div>
+
+          <button type="submit" class="save-btn" id="save-btn">
+            Save Settings
+          </button>
+
+          <div class="status-msg" id="status-msg"></div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById(
+        "settings-form",
+      ) as HTMLFormElement | null;
+      const saveBtn = document.getElementById(
+        "save-btn",
+      ) as HTMLButtonElement | null;
+      const statusMsg = document.getElementById("status-msg");
+
+      function showStatus(message: string, type: "success" | "error") {
+        if (!statusMsg) return;
+        statusMsg.textContent = message;
+        statusMsg.className = `status-msg ${type}`;
+      }
+
+      form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const blogName = (
+          document.getElementById("blogName") as HTMLInputElement
+        )?.value.trim();
+        const blogHeadline = (
+          document.getElementById("blogHeadline") as HTMLInputElement
+        )?.value.trim();
+
+        if (!blogName) {
+          showStatus("Blog name is required.", "error");
+          return;
+        }
+
+        if (saveBtn) saveBtn.disabled = true;
+
+        try {
+          const response = await fetch("/api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ blogName, blogHeadline }),
+          });
+
+          if (response.ok) {
+            showStatus("Settings saved successfully!", "success");
+          } else {
+            const data = (await response.json()) as { error?: string };
+            showStatus(data.error ?? "Failed to save settings.", "error");
+          }
+        } catch {
+          showStatus("An error occurred. Please try again.", "error");
+        } finally {
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

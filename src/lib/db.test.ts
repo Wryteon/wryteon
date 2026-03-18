@@ -37,6 +37,10 @@ vi.mock("astro:db", () => {
       updatedAt: "updatedAt",
       $inferSelect: {},
     },
+    SiteSettings: {
+      key: "key",
+      value: "value",
+    },
     eq: (left: unknown, right: unknown) => ({ left, right }),
     desc: (value: unknown) => ({ desc: value }),
   };
@@ -130,5 +134,69 @@ describe("db helpers", () => {
     });
     expect(setValues.updatedAt).toBeInstanceOf(Date);
     expect(setValues.publishedAt).toBeInstanceOf(Date);
+  });
+});
+
+describe("site settings helpers", () => {
+  it("getSiteSetting returns DB value when found", async () => {
+    const { getSiteSetting } = await import("./db");
+
+    selectResult = [{ key: "blogName", value: "My Custom Blog" }];
+
+    const value = await getSiteSetting("blogName");
+
+    expect(value).toBe("My Custom Blog");
+  });
+
+  it("getSiteSetting returns default when not in DB", async () => {
+    const { getSiteSetting, SITE_SETTING_DEFAULTS } = await import("./db");
+
+    selectResult = [];
+
+    const value = await getSiteSetting("blogName");
+
+    expect(value).toBe(SITE_SETTING_DEFAULTS.blogName);
+  });
+
+  it("getSiteSettings merges DB rows over defaults", async () => {
+    const { getSiteSettings, SITE_SETTING_DEFAULTS } = await import("./db");
+
+    selectResult = [{ key: "blogName", value: "Overridden" }];
+
+    const settings = await getSiteSettings();
+
+    expect(settings.blogName).toBe("Overridden");
+    expect(settings.blogHeadline).toBe(SITE_SETTING_DEFAULTS.blogHeadline);
+  });
+
+  it("setSiteSetting inserts when key is absent", async () => {
+    const { setSiteSetting } = await import("./db");
+
+    selectResult = [];
+
+    await setSiteSetting("blogName", "New Name");
+
+    expect(insertFn).toHaveBeenCalledTimes(1);
+    expect(updateFn).not.toHaveBeenCalled();
+
+    const values = insertValues.mock.calls[0]?.[0] as {
+      key: string;
+      value: string;
+    };
+    expect(values).toMatchObject({ key: "blogName", value: "New Name" });
+  });
+
+  it("setSiteSetting updates when key exists", async () => {
+    const { setSiteSetting } = await import("./db");
+
+    selectResult = [{ key: "blogName", value: "Old Name" }];
+
+    await setSiteSetting("blogName", "Updated Name");
+
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(insertFn).not.toHaveBeenCalled();
+
+    const setValues = updateSet.mock.calls[0]?.[0] as { value: string };
+    expect(setValues).toMatchObject({ value: "Updated Name" });
   });
 });
