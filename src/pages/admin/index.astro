@@ -22,6 +22,7 @@ if (!session) {
 }
 
 const settings = await getSiteSettings();
+const currentYear = new Date().getFullYear();
 ---
 
 <AdminLayout>
@@ -308,7 +309,7 @@ const settings = await getSiteSettings();
         </div>
 
         <div class="footer">
-          <p>&copy; 2025 {settings.blogName}</p>
+          <p>&copy; {currentYear} {settings.blogName}</p>
         </div>
       </div>
     </body>
