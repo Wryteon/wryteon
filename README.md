@@ -20,6 +20,8 @@ A sleek, modern blogging CMS built with **Astro** and **Editor.js**, featuring a
 
 - **Post Statistics**: See how many posts you have
 - **Quick Actions**: Create posts, view all, manage content
+- **Account Security**: Change admin password from Settings
+- **Default Password Warning**: Banner appears across admin pages until password is changed
 - **Responsive Design**: Works on desktop, tablet, mobile
 - **Beautiful UI**: Modern gradient design with smooth interactions
 
@@ -73,6 +75,7 @@ The dev server will start at `http://localhost:4321`
 | `/admin/posts`    | List all posts (edit/delete options)   |
 | `/admin/new-post` | Create a new post                      |
 | `/admin/[slug]`   | Edit existing post                     |
+| `/admin/settings` | Site settings + password change        |
 
 ## 🌐 Public Pages
 
@@ -254,7 +257,18 @@ Notes:
 
 - The E2E suite starts the app automatically and uses a dedicated SQLite DB at `.db/e2e.sqlite`.
 - The upload smoke test verifies that `/api/upload` returns a `/media/...` URL and that the image is fetchable and renderable in a published post.
+- The security smoke tests verify the default-password warning on admin routes and confirm it disappears after a successful password change.
 - Generated Playwright artifacts (like `test-results/`) are ignored via `.gitignore`.
+
+### CI checks
+
+CI runs on pull requests, pushes to `main`, and version tags (`v*`) with split jobs:
+
+- **quality**: install, lint, build
+- **unit-tests**: Vitest unit tests
+- **e2e-tests**: Playwright smoke tests
+
+On `v*` tags, a release Docker job runs and validates that the git tag version matches `package.json`.
 
 ## 🛠️ Customization
 
@@ -345,9 +359,9 @@ git push origin --tags
 
 ### Example
 
-- `npm version patch` updates `0.1.0` to `0.1.1` and creates tag `v0.1.1`.
+- `npm version patch` updates `x.y.z` to `x.y.(z+1)` and creates the matching `v` tag.
 - Push `main` and tags.
-- CI accepts the release only if `package.json` is `0.1.1`.
+- CI accepts the release only if `package.json` matches the tag version.
 
 ## 🛣️ Roadmap
 
