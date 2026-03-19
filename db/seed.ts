@@ -1,11 +1,13 @@
 import { db, eq } from "astro:db";
 import { asDrizzleTable } from "@astrojs/db/utils";
-import { Users } from "./config";
+import { Users, SiteSettings } from "./config";
 import { hash } from "bcrypt";
 import crypto from "crypto";
 
 const SALT_ROUNDS = 10;
 const UsersTable = asDrizzleTable("Users", Users);
+const SiteSettingsTable = asDrizzleTable("SiteSettings", SiteSettings);
+const INITIAL_PASSWORD_CHANGED_KEY = "defaultAdminPasswordChanged";
 
 async function maybeLoadDotenv(): Promise<void> {
   // `astro db execute` does not always load `.env` automatically.
@@ -71,6 +73,11 @@ export default async function seed() {
       email,
       passwordHash,
       createdAt: new Date(),
+    });
+
+    await db.insert(SiteSettingsTable).values({
+      key: INITIAL_PASSWORD_CHANGED_KEY,
+      value: "false",
     });
 
     console.log("✅ Default admin user created");

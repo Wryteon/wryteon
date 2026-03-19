@@ -107,4 +107,8 @@ const previewPost: PostRecord = {
 const backLinkHref = slug === "new-post" ? "/admin/new-post" : `/admin/${slug}`;
 ---
 
-<PostPage post={previewPost} backLinkHref={backLinkHref} />
+<PostPage
+  post={previewPost}
+  backLinkHref={backLinkHref}
+  showAdminSecurityWarning={true}
+/>

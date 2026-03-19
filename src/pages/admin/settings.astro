@@ -5,6 +5,7 @@ import {
   MAX_BLOG_HEADLINE_LENGTH,
   MAX_BLOG_NAME_LENGTH,
 } from "../../lib/siteSettings";
+import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
 
@@ -161,9 +162,43 @@ const settings = await getSiteSettings();
         outline: none;
       }
 
+      input[type="password"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 16px;
+        color: #333;
+        transition: border-color 0.2s;
+        outline: none;
+      }
+
       input[type="text"]:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+      }
+
+      input[type="password"]:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+      }
+
+      .section-divider {
+        margin: 36px 0 32px;
+        border: 0;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .section-title {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .section-subtitle {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 24px;
       }
 
       .field-hint {
@@ -181,7 +216,9 @@ const settings = await getSiteSettings();
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-        transition: opacity 0.2s, transform 0.2s;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
       }
 
       .save-btn:hover {
@@ -262,6 +299,8 @@ const settings = await getSiteSettings();
           site.
         </p>
 
+        {(<AdminSecurityWarning onSettingsPage={true} />)}
+
         <form id="settings-form">
           <div class="form-group">
             <label for="blogName">Blog Name</label>
@@ -300,6 +339,57 @@ const settings = await getSiteSettings();
 
           <div class="status-msg" id="status-msg"></div>
         </form>
+
+        <hr class="section-divider" />
+
+        <h2 class="section-title">Change Password</h2>
+        <p class="section-subtitle">
+          Update your admin password regularly to keep your account secure.
+        </p>
+
+        <form id="password-form">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+            <p class="field-hint">Use at least 8 characters.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="save-btn" id="password-save-btn">
+            Change Password
+          </button>
+
+          <div class="status-msg" id="password-status-msg"></div>
+        </form>
       </div>
     </div>
 
@@ -311,11 +401,31 @@ const settings = await getSiteSettings();
         "save-btn",
       ) as HTMLButtonElement | null;
       const statusMsg = document.getElementById("status-msg");
+      const passwordForm = document.getElementById(
+        "password-form",
+      ) as HTMLFormElement | null;
+      const passwordSaveBtn = document.getElementById(
+        "password-save-btn",
+      ) as HTMLButtonElement | null;
+      const passwordStatusMsg = document.getElementById("password-status-msg");
+      const passwordWarning = document.getElementById("password-warning");
 
-      function showStatus(message: string, type: "success" | "error") {
-        if (!statusMsg) return;
-        statusMsg.textContent = message;
-        statusMsg.className = `status-msg ${type}`;
+      function showStatus(
+        message: string,
+        type: "success" | "error",
+        target: HTMLElement | null,
+      ) {
+        if (!target) return;
+        target.textContent = message;
+        target.className = `status-msg ${type}`;
+      }
+
+      function showSettingsStatus(message: string, type: "success" | "error") {
+        showStatus(message, type, statusMsg);
+      }
+
+      function showPasswordStatus(message: string, type: "success" | "error") {
+        showStatus(message, type, passwordStatusMsg);
       }
 
       form?.addEventListener("submit", async (e) => {
@@ -329,7 +439,7 @@ const settings = await getSiteSettings();
         )?.value.trim();
 
         if (!blogName) {
-          showStatus("Blog name is required.", "error");
+          showSettingsStatus("Blog name is required.", "error");
           return;
         }
 
@@ -343,15 +453,85 @@ const settings = await getSiteSettings();
           });
 
           if (response.ok) {
-            showStatus("Settings saved successfully!", "success");
+            showSettingsStatus("Settings saved successfully!", "success");
           } else {
             const data = (await response.json()) as { error?: string };
-            showStatus(data.error ?? "Failed to save settings.", "error");
+            showSettingsStatus(
+              data.error ?? "Failed to save settings.",
+              "error",
+            );
           }
         } catch {
-          showStatus("An error occurred. Please try again.", "error");
+          showSettingsStatus("An error occurred. Please try again.", "error");
         } finally {
           if (saveBtn) saveBtn.disabled = false;
+        }
+      });
+
+      passwordForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const currentPassword = (
+          document.getElementById("currentPassword") as HTMLInputElement
+        )?.value;
+        const newPassword = (
+          document.getElementById("newPassword") as HTMLInputElement
+        )?.value;
+        const confirmPassword = (
+          document.getElementById("confirmPassword") as HTMLInputElement
+        )?.value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          showPasswordStatus("All password fields are required.", "error");
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          showPasswordStatus(
+            "New password and confirmation do not match.",
+            "error",
+          );
+          return;
+        }
+
+        if (newPassword.length < 8) {
+          showPasswordStatus(
+            "New password must be at least 8 characters.",
+            "error",
+          );
+          return;
+        }
+
+        if (passwordSaveBtn) passwordSaveBtn.disabled = true;
+
+        try {
+          const response = await fetch("/api/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              currentPassword,
+              newPassword,
+              confirmPassword,
+            }),
+          });
+
+          if (response.ok) {
+            passwordForm.reset();
+            showPasswordStatus("Password changed successfully.", "success");
+            if (passwordWarning) {
+              passwordWarning.remove();
+            }
+          } else {
+            const data = (await response.json()) as { error?: string };
+            showPasswordStatus(
+              data.error ?? "Failed to change password.",
+              "error",
+            );
+          }
+        } catch {
+          showPasswordStatus("An error occurred. Please try again.", "error");
+        } finally {
+          if (passwordSaveBtn) passwordSaveBtn.disabled = false;
         }
       });
     </script>

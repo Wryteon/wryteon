@@ -2,6 +2,7 @@
 import { getPostCount, getSiteSettings } from "../../lib/db";
 import { validateSession } from "../../lib/auth";
 import AdminLayout from "../../layouts/AdminLayout.astro";
+import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
 
@@ -257,6 +258,8 @@ const currentYear = new Date().getFullYear();
             <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
           </ul>
         </nav>
+
+        <AdminSecurityWarning />
 
         <div class="dashboard-header">
           <h1>Welcome to {settings.blogName} Admin</h1>

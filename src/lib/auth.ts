@@ -6,6 +6,7 @@ import crypto from "crypto";
 
 const SALT_ROUNDS = 10;
 const SESSION_DURATION_DAYS = 7;
+export const MIN_PASSWORD_LENGTH = 8;
 
 // Create type-safe table references
 const UsersTable = asDrizzleTable("Users", Users);
@@ -118,6 +119,51 @@ export async function getUserById(userId: string) {
   } catch (error) {
     console.error("Get user error:", error);
     return null;
+  }
+}
+
+/**
+ * Change a user's password after verifying their current password.
+ */
+export async function changeUserPassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return {
+      success: false,
+      error: `New password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+    };
+  }
+
+  try {
+    const user = await getUserById(userId);
+
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    const isCurrentPasswordValid = await verifyPassword(
+      currentPassword,
+      user.passwordHash
+    );
+
+    if (!isCurrentPasswordValid) {
+      return { success: false, error: "Current password is incorrect" };
+    }
+
+    const newPasswordHash = await hashPassword(newPassword);
+
+    await db
+      .update(UsersTable)
+      .set({ passwordHash: newPasswordHash })
+      .where(eq(UsersTable.id, userId));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Change password error:", error);
+    return { success: false, error: "Failed to change password" };
   }
 }
 

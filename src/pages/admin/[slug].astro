@@ -5,6 +5,7 @@ import type { PostRecord } from "../../lib/db";
 import type { PostPayload, PostStatus } from "../../types/post";
 import type { EditorDocument } from "../../types/editor";
 import Editor from "../../admin/components/Editor.astro";
+import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
 
@@ -124,6 +125,10 @@ const initialData = JSON.stringify(initialDocument);
         padding-bottom: 20px;
         border-bottom: 1px solid #e1e5e9;
       }
+
+      .warning-wrap {
+        margin-bottom: 12px;
+      }
       .title-input {
         width: 100%;
         font-size: 24px;
@@ -151,6 +156,10 @@ const initialData = JSON.stringify(initialDocument);
   </head>
   <body>
     <div class="container">
+      <div class="warning-wrap">
+        <AdminSecurityWarning />
+      </div>
+
       <div class="header">
         <input
           type="text"

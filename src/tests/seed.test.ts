@@ -10,10 +10,14 @@ const selectMock = vi.fn(() => ({ from: fromMock }));
 const insertValuesMock = vi.fn(async () => undefined);
 const insertMock = vi.fn(() => ({ values: insertValuesMock }));
 
-const hashMock = vi.fn(async (_value: string, _rounds: number) => "hashed-password");
+const hashMock = vi.fn(
+  async (_value: string, _rounds: number) => "hashed-password",
+);
 
 function getLatestInsertPayload(): Record<string, unknown> {
-  const calls = insertValuesMock.mock.calls as unknown as Array<[Record<string, unknown>]>;
+  const calls = insertValuesMock.mock.calls as unknown as Array<
+    [Record<string, unknown>]
+  >;
   const latestCall = calls.at(-1);
 
   if (!latestCall) {
@@ -41,6 +45,10 @@ vi.mock("../../db/config", () => ({
     email: "email",
     passwordHash: "passwordHash",
     createdAt: "createdAt",
+  },
+  SiteSettings: {
+    key: "key",
+    value: "value",
   },
 }));
 
@@ -72,16 +80,25 @@ describe("db seed", () => {
 
     expect(selectMock).toHaveBeenCalledTimes(1);
     expect(hashMock).toHaveBeenCalledWith("secret-password", 10);
-    expect(insertMock).toHaveBeenCalledTimes(1);
+    expect(insertMock).toHaveBeenCalledTimes(2);
 
     const payload = getLatestInsertPayload();
 
     expect(payload).toMatchObject({
+      key: "defaultAdminPasswordChanged",
+      value: "false",
+    });
+
+    const firstPayload = insertValuesMock.mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(firstPayload).toMatchObject({
       email: "admin@example.com",
       passwordHash: "hashed-password",
     });
-    expect(payload.createdAt).toBeInstanceOf(Date);
-    expect(typeof payload.id).toBe("string");
+    expect(firstPayload.createdAt).toBeInstanceOf(Date);
+    expect(typeof firstPayload.id).toBe("string");
   });
 
   it("skips insert when the email already exists", async () => {

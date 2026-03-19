@@ -2,6 +2,7 @@
 import { getAllPosts, deletePost, getSiteSettings } from "../../lib/db";
 import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
+import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
 
@@ -322,6 +323,8 @@ const settings = await getSiteSettings();
           <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
         </ul>
       </nav>
+
+      <AdminSecurityWarning />
 
       <a href="/admin" class="back-link">← Back to Dashboard</a>
 

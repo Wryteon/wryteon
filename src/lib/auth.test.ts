@@ -13,6 +13,10 @@ const selectChain = {
 const insertValues = vi.fn(async () => undefined);
 const insertFn = vi.fn(() => ({ values: insertValues }));
 
+const updateWhere = vi.fn(async () => undefined);
+const updateSet = vi.fn(() => ({ where: updateWhere }));
+const updateFn = vi.fn(() => ({ set: updateSet }));
+
 const deleteWhere = vi.fn(async () => undefined);
 const deleteFn = vi.fn(() => ({ where: deleteWhere }));
 
@@ -21,6 +25,7 @@ vi.mock("astro:db", () => {
     db: {
       select: vi.fn(() => selectChain),
       insert: insertFn,
+      update: updateFn,
       delete: deleteFn,
     },
     eq: (left: unknown, right: unknown) => ({ left, right }),
@@ -60,6 +65,10 @@ beforeEach(() => {
 
   insertFn.mockClear();
   insertValues.mockClear();
+
+  updateFn.mockClear();
+  updateSet.mockClear();
+  updateWhere.mockClear();
 
   deleteFn.mockClear();
   deleteWhere.mockClear();
@@ -187,5 +196,55 @@ describe("auth", () => {
     const result = await verifyLogin("missing@example.com", "secret-password");
 
     expect(result).toBeNull();
+  });
+
+  it("changeUserPassword updates hash for valid current password", async () => {
+    const { hashPassword, changeUserPassword } = await import("./auth");
+
+    selectResult = [
+      {
+        id: "user-9",
+        email: "admin@example.com",
+        passwordHash: await hashPassword("old-password"),
+      },
+    ];
+
+    const result = await changeUserPassword(
+      "user-9",
+      "old-password",
+      "new-password-123",
+    );
+
+    expect(result).toEqual({ success: true });
+    expect(updateFn).toHaveBeenCalledTimes(1);
+    expect(updateSet).toHaveBeenCalledTimes(1);
+
+    const payload = updateSet.mock.calls[0]?.[0];
+    expect(payload.passwordHash).toEqual(expect.any(String));
+    expect(payload.passwordHash).not.toBe("new-password-123");
+  });
+
+  it("changeUserPassword rejects invalid current password", async () => {
+    const { hashPassword, changeUserPassword } = await import("./auth");
+
+    selectResult = [
+      {
+        id: "user-9",
+        email: "admin@example.com",
+        passwordHash: await hashPassword("old-password"),
+      },
+    ];
+
+    const result = await changeUserPassword(
+      "user-9",
+      "wrong-password",
+      "new-password-123",
+    );
+
+    expect(result).toEqual({
+      success: false,
+      error: "Current password is incorrect",
+    });
+    expect(updateFn).not.toHaveBeenCalled();
   });
 });

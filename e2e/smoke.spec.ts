@@ -11,9 +11,9 @@ function requireEnv(name: string): string {
   return value.trim();
 }
 
-async function loginAsAdmin(page: Page) {
+async function loginAsAdmin(page: Page, passwordOverride?: string) {
   const email = requireEnv("WRYTEON_ADMIN_EMAIL");
-  const password = requireEnv("WRYTEON_ADMIN_PASSWORD");
+  const password = passwordOverride ?? requireEnv("WRYTEON_ADMIN_PASSWORD");
 
   await page.goto("/auth/login");
   await page.locator('input[name="email"]').fill(email);
@@ -22,6 +22,17 @@ async function loginAsAdmin(page: Page) {
     page.waitForURL(/\/admin(\/|$)/),
     page.locator('button[type="submit"]').click(),
   ]);
+}
+
+async function expectDefaultPasswordWarningVisible(page: Page) {
+  await expect(page.locator("#password-warning")).toBeVisible();
+  await expect(page.locator("#password-warning")).toContainText(
+    "initial admin password",
+  );
+}
+
+async function expectDefaultPasswordWarningHidden(page: Page) {
+  await expect(page.locator("#password-warning")).toHaveCount(0);
 }
 
 function requireBaseUrl(): string {
@@ -138,4 +149,57 @@ test("can upload an image and render it in a post", async ({ page }) => {
   await page.goto(`/${slug}`);
   await expect(page.locator(".post-title")).toHaveText(title);
   await expect(page.locator(`img[src="${imageUrl}"]`)).toBeVisible();
+});
+
+test("shows the default password warning across admin pages", async ({
+  page,
+}) => {
+  await loginAsAdmin(page);
+
+  await page.goto("/admin");
+  await expectDefaultPasswordWarningVisible(page);
+
+  await page.goto("/admin/posts");
+  await expectDefaultPasswordWarningVisible(page);
+
+  await page.goto("/admin/new-post");
+  await expectDefaultPasswordWarningVisible(page);
+
+  await page.goto("/admin/settings");
+  await expectDefaultPasswordWarningVisible(page);
+});
+
+test("hides the warning after changing the admin password", async ({
+  page,
+}) => {
+  const currentPassword = requireEnv("WRYTEON_ADMIN_PASSWORD");
+  const newPassword = `updated-${Date.now()}-password`;
+
+  await loginAsAdmin(page, currentPassword);
+  await page.goto("/admin/settings");
+
+  await expectDefaultPasswordWarningVisible(page);
+
+  await page.locator("#currentPassword").fill(currentPassword);
+  await page.locator("#newPassword").fill(newPassword);
+  await page.locator("#confirmPassword").fill(newPassword);
+
+  await page.locator("#password-save-btn").click();
+
+  await expect(page.locator("#password-status-msg")).toContainText(
+    "Password changed successfully.",
+  );
+  await expectDefaultPasswordWarningHidden(page);
+
+  await page.goto("/admin");
+  await expectDefaultPasswordWarningHidden(page);
+
+  await page.goto("/admin/posts");
+  await expectDefaultPasswordWarningHidden(page);
+
+  await page.goto("/admin/new-post");
+  await expectDefaultPasswordWarningHidden(page);
+
+  await page.goto("/admin/settings");
+  await expectDefaultPasswordWarningHidden(page);
 });

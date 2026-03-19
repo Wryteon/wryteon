@@ -1,0 +1,55 @@
+---
+import { getSiteSetting } from "../../lib/db";
+
+export interface Props {
+  onSettingsPage?: boolean;
+}
+
+const { onSettingsPage = false } = Astro.props;
+const initialPasswordChangedSetting = await getSiteSetting(
+  "defaultAdminPasswordChanged",
+);
+const shouldShowDefaultPasswordWarning =
+  initialPasswordChangedSetting !== "true";
+---
+
+{
+  shouldShowDefaultPasswordWarning && (
+    <div
+      class="security-warning"
+      id="password-warning"
+      role="status"
+      aria-live="polite"
+    >
+      <strong>Security warning:</strong> you are still using the initial admin
+      password.
+      {onSettingsPage ? (
+        <> Please change it below.</>
+      ) : (
+        <>
+          {" "}
+          Please{" "}
+          <a href="/admin/settings#password-form">change it in Settings</a>.
+        </>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .security-warning {
+    background: #fff3cd;
+    color: #664d03;
+    border: 1px solid #ffecb5;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .security-warning a {
+    color: #664d03;
+    font-weight: 700;
+  }
+</style>
