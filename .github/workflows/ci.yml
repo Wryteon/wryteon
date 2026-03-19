@@ -36,7 +36,9 @@ jobs:
         run: npm run lint
 
       - name: Build
-        run: npm run build
+        run: |
+          mkdir -p .db
+          ASTRO_DATABASE_FILE=./.db/ci-build.sqlite npm run build
 
   unit-tests:
     needs: [quality]
