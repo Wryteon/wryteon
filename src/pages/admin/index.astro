@@ -50,51 +50,83 @@ const currentYear = new Date().getFullYear();
         .container {
           max-width: 1200px;
           margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
         }
 
         .navbar {
           background: white;
-          border-radius: 8px;
-          padding: 20px;
-          margin-bottom: 40px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+          border-radius: 14px;
+          padding: 14px 18px;
+          box-shadow: 0 12px 24px rgba(14, 17, 44, 0.15);
+          position: sticky;
+          top: 12px;
+          z-index: 40;
         }
 
         .logo {
-          font-size: 24px;
-          font-weight: bold;
+          font-size: 27px;
+          font-weight: 800;
           color: #667eea;
+        }
+
+        .nav-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .mobile-signout {
+          display: none;
+          text-decoration: none;
+          background: #ff6b6b;
+          color: white;
+          font-weight: 700;
+          border-radius: 10px;
+          padding: 8px 12px;
+          font-size: 13px;
         }
 
         .nav-links {
           display: flex;
-          gap: 20px;
+          gap: 10px;
           list-style: none;
           align-items: center;
+          margin-top: 14px;
+          flex-wrap: wrap;
         }
 
         .nav-links a {
           text-decoration: none;
-          color: #666;
-          font-weight: 500;
-          transition: color 0.3s;
+          color: #4b5563;
+          font-weight: 600;
+          transition:
+            color 0.2s,
+            background-color 0.2s;
+          padding: 8px 12px;
+          border-radius: 999px;
         }
 
         .nav-links a:hover {
-          color: #667eea;
+          color: #1f2a44;
+          background: #eef2ff;
+        }
+
+        .nav-links a.active {
+          color: #1f2a44;
+          background: #e0e7ff;
         }
 
         .logout-btn {
           background-color: #ff6b6b;
           color: white;
           border: none;
-          padding: 10px 16px;
-          border-radius: 6px;
+          padding: 10px 14px;
+          border-radius: 10px;
           cursor: pointer;
-          font-weight: 500;
+          font-weight: 700;
           transition: background-color 0.3s;
           text-decoration: none;
           display: inline-block;
@@ -104,11 +136,60 @@ const currentYear = new Date().getFullYear();
           background-color: #ff5252;
         }
 
+        .quick-create-link {
+          background: linear-gradient(135deg, #4f67e8 0%, #6f43b3 100%);
+          color: white !important;
+        }
+
+        .quick-create-link:hover {
+          background: linear-gradient(135deg, #4259d2 0%, #6037a0);
+        }
+
+        .mobile-tabs {
+          display: none;
+          margin-top: 12px;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 8px;
+        }
+
+        .tab-link {
+          text-decoration: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          min-height: 56px;
+          border-radius: 12px;
+          color: #334155;
+          background: #eef2ff;
+          padding: 6px 4px;
+          font-size: 11px;
+          font-weight: 700;
+          text-align: center;
+          line-height: 1.1;
+        }
+
+        .tab-link .tab-icon {
+          font-size: 16px;
+          line-height: 1;
+        }
+
+        .tab-link.active {
+          background: #dbe4ff;
+          color: #1f2a44;
+        }
+
+        .dashboard-main {
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+        }
+
         .dashboard-header {
           background: white;
           border-radius: 8px;
           padding: 40px;
-          margin-bottom: 40px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           text-align: center;
         }
@@ -128,7 +209,6 @@ const currentYear = new Date().getFullYear();
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
-          margin-bottom: 40px;
         }
 
         .stat-card {
@@ -162,6 +242,12 @@ const currentYear = new Date().getFullYear();
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
           gap: 20px;
+        }
+
+        .section-title {
+          color: white;
+          font-size: 24px;
+          margin-bottom: 14px;
         }
 
         .action-card {
@@ -217,14 +303,46 @@ const currentYear = new Date().getFullYear();
         .footer {
           text-align: center;
           color: white;
-          margin-top: 40px;
           padding: 20px;
         }
 
         @media (max-width: 768px) {
+          body {
+            padding: 12px;
+          }
+
+          .container {
+            gap: 14px;
+          }
+
           .navbar {
-            flex-direction: column;
-            gap: 15px;
+            top: 8px;
+            padding: 12px;
+            border-radius: 12px;
+          }
+
+          .nav-links {
+            display: none;
+          }
+
+          .mobile-signout {
+            display: inline-block;
+          }
+
+          .mobile-tabs {
+            display: grid;
+          }
+
+          .dashboard-main {
+            gap: 16px;
+          }
+
+          .quick-actions-block {
+            order: 1;
+          }
+
+          .stats-block {
+            order: 2;
           }
 
           .dashboard-header {
@@ -235,13 +353,14 @@ const currentYear = new Date().getFullYear();
             font-size: 24px;
           }
 
-          .nav-links {
-            flex-direction: column;
-            width: 100%;
+          .stat-card,
+          .action-card {
+            padding: 24px;
           }
 
-          .logout-btn {
-            width: 100%;
+          .section-title {
+            font-size: 24px;
+            margin-bottom: 4px;
           }
         }
       </style>
@@ -249,71 +368,109 @@ const currentYear = new Date().getFullYear();
     <body>
       <div class="container">
         <nav class="navbar">
-          <div class="logo">🚀 {settings.blogName}</div>
+          <div class="nav-top">
+            <div class="logo">🚀 {settings.blogName}</div>
+            <a href="/auth/logout" class="mobile-signout">Sign Out</a>
+          </div>
+
           <ul class="nav-links">
-            <li><a href="/admin">Dashboard</a></li>
+            <li><a href="/admin" class="active">Dashboard</a></li>
+            <li>
+              <a href="/admin/new-post" class="quick-create-link">+ New Post</a>
+            </li>
             <li><a href="/admin/posts">All Posts</a></li>
             <li><a href="/admin/settings">Settings</a></li>
             <li><a href="/">View Site</a></li>
             <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
           </ul>
+
+          <div
+            class="mobile-tabs"
+            role="navigation"
+            aria-label="Admin navigation"
+          >
+            <a href="/admin" class="tab-link active">
+              <span class="tab-icon">🏠</span>
+              <span>Home</span>
+            </a>
+            <a href="/admin/new-post" class="tab-link">
+              <span class="tab-icon">✍️</span>
+              <span>New</span>
+            </a>
+            <a href="/admin/posts" class="tab-link">
+              <span class="tab-icon">📝</span>
+              <span>Posts</span>
+            </a>
+            <a href="/admin/settings" class="tab-link">
+              <span class="tab-icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+            <a href="/" class="tab-link">
+              <span class="tab-icon">👁️</span>
+              <span>Site</span>
+            </a>
+          </div>
         </nav>
 
         <AdminSecurityWarning />
 
-        <div class="dashboard-header">
-          <h1>Welcome to {settings.blogName} Admin</h1>
-          <p>Manage your blog posts with our powerful block-based editor</p>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-number">{postCount}</div>
-            <div class="stat-label">Total Posts</div>
+        <main class="dashboard-main">
+          <div class="dashboard-header">
+            <h1>Welcome to {settings.blogName} Admin</h1>
+            <p>Manage your blog posts with our powerful block-based editor</p>
           </div>
-          <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Drafts</div>
+
+          <section class="quick-actions-block">
+            <h2 class="section-title">Quick Actions</h2>
+
+            <div class="action-grid">
+              <a href="/admin/new-post" class="action-card primary">
+                <div class="action-icon">✍️</div>
+                <h3>Create New Post</h3>
+                <p>Start writing a new blog post</p>
+              </a>
+
+              <a href="/admin/posts" class="action-card">
+                <div class="action-icon">📝</div>
+                <h3>View All Posts</h3>
+                <p>Manage and edit existing posts</p>
+              </a>
+
+              <a href="/admin/settings" class="action-card">
+                <div class="action-icon">⚙️</div>
+                <h3>Site Settings</h3>
+                <p>Update blog name and headline</p>
+              </a>
+
+              <a href="/" class="action-card">
+                <div class="action-icon">👁️</div>
+                <h3>View Blog</h3>
+                <p>See how your blog looks</p>
+              </a>
+            </div>
+          </section>
+
+          <section class="stats-block">
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">{postCount}</div>
+                <div class="stat-label">Total Posts</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Drafts</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Published</div>
+              </div>
+            </div>
+          </section>
+
+          <div class="footer">
+            <p>&copy; {currentYear} {settings.blogName}</p>
           </div>
-          <div class="stat-card">
-            <div class="stat-number">0</div>
-            <div class="stat-label">Published</div>
-          </div>
-        </div>
-
-        <h2 style="color: white; margin-bottom: 20px; font-size: 24px;">
-          Quick Actions
-        </h2>
-
-        <div class="action-grid">
-          <a href="/admin/new-post" class="action-card primary">
-            <div class="action-icon">✍️</div>
-            <h3>Create New Post</h3>
-            <p>Start writing a new blog post</p>
-          </a>
-
-          <a href="/admin/posts" class="action-card">
-            <div class="action-icon">📝</div>
-            <h3>View All Posts</h3>
-            <p>Manage and edit existing posts</p>
-          </a>
-
-          <a href="/admin/settings" class="action-card">
-            <div class="action-icon">⚙️</div>
-            <h3>Site Settings</h3>
-            <p>Update blog name and headline</p>
-          </a>
-
-          <a href="/" class="action-card">
-            <div class="action-icon">👁️</div>
-            <h3>View Blog</h3>
-            <p>See how your blog looks</p>
-          </a>
-        </div>
-
-        <div class="footer">
-          <p>&copy; {currentYear} {settings.blogName}</p>
-        </div>
+        </main>
       </div>
     </body>
   </html>
