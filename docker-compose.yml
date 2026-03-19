@@ -6,6 +6,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 4321
+      ASTRO_TELEMETRY_DISABLED: 1
       ASTRO_DB_REMOTE_URL: file:/data/wryteon.sqlite
       UPLOADS_DIR: /data/uploads
       # Optional: create a default admin on first run

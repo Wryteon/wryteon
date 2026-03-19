@@ -76,10 +76,10 @@ The dev server will start at `http://localhost:4321`
 
 ## 🌐 Public Pages
 
-| URL             | Purpose                          |
-| --------------- | -------------------------------- |
-| `/`             | Homepage - shows published posts |
-| `/[slug]`       | Individual post page             |
+| URL       | Purpose                          |
+| --------- | -------------------------------- |
+| `/`       | Homepage - shows published posts |
+| `/[slug]` | Individual post page             |
 
 ## ⌨️ Editor Shortcuts
 
@@ -125,7 +125,7 @@ src/
 
 ```bash
 # Build the app in Astro DB remote mode
-ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite npm run build -- --remote
+ASTRO_TELEMETRY_DISABLED=1 ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite npm run build -- --remote
 
 # Start the production server (uses dist/server/entry.mjs)
 # Tip: set HOST=0.0.0.0 when running in Docker.
@@ -158,6 +158,7 @@ Run with a named Docker volume:
 docker run --rm -p 4321:4321 \
    -e HOST=0.0.0.0 \
    -e PORT=4321 \
+   -e ASTRO_TELEMETRY_DISABLED=1 \
    -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
    -e UPLOADS_DIR=/data/uploads \
    -e WRYTEON_ADMIN_EMAIL=admin@example.com \
@@ -173,6 +174,7 @@ mkdir -p "$PWD/.docker-data"
 docker run --rm -p 4321:4321 \
    -e HOST=0.0.0.0 \
    -e PORT=4321 \
+   -e ASTRO_TELEMETRY_DISABLED=1 \
    -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
    -e UPLOADS_DIR=/data/uploads \
    -e WRYTEON_ADMIN_EMAIL=admin@example.com \
@@ -197,6 +199,8 @@ On container start, the entrypoint will:
    - `WRYTEON_ADMIN_PASSWORD`
 
 See `.env.example` for a complete list of supported variables.
+
+Astro telemetry is disabled by default in `docker-compose.yml` and `.env.example` via `ASTRO_TELEMETRY_DISABLED=1`.
 
 > **⚠️ Important**: The `ASTRO_DB_REMOTE_URL` is baked into the server bundle at image build time. If you change it, you must rebuild the Docker image (`docker compose up --build`). The runtime env var only affects `astro db push` and `astro db execute` commands; the SSR server uses the build-time value.
 
@@ -271,7 +275,9 @@ Add new block types:
 Local development defaults to Astro DB's ephemeral `.astro/content.db`, which is recreated on each restart. To keep a persistent SQLite file instead, set up a local development database:
 
 1. **Configure the connection**
-   - Create or update `.env` with `ASTRO_DB_REMOTE_URL=file:./data/wryteon.sqlite`.
+   - Create or update `.env` with:
+     - `ASTRO_TELEMETRY_DISABLED=1`
+     - `ASTRO_DB_REMOTE_URL=file:./data/wryteon.sqlite`
 2. **Create the SQLite file**
    - Run `mkdir -p data && touch data/wryteon.sqlite` to ensure the file exists.
 3. **Push the schema**
