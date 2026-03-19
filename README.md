@@ -316,6 +316,39 @@ Notes:
 4. Upload images through the editor; they are stored under `UPLOADS_DIR` and served from `/media/<filename>`.
 5. Publish the post and verify it at `/<slug>`.
 
+## 🏷️ Release Versioning
+
+This project publishes releases from git tags (`v*`) in CI. The release workflow verifies that the git tag version matches `package.json` (for example, tag `v0.2.0` must match `"version": "0.2.0"`).
+
+### Recommended release flow
+
+1. **Bump package version**
+
+```bash
+npm version patch
+# or: npm version minor
+# or: npm version major
+```
+
+2. **Push commit and tag**
+
+```bash
+git push origin main
+git push origin --tags
+```
+
+3. **CI validates and publishes**
+
+- CI runs quality, unit, and E2E checks.
+- On tag pushes, CI verifies `package.json` version matches the tag.
+- If the versions differ, the release job fails before publishing Docker images.
+
+### Example
+
+- `npm version patch` updates `0.1.0` to `0.1.1` and creates tag `v0.1.1`.
+- Push `main` and tags.
+- CI accepts the release only if `package.json` is `0.1.1`.
+
 ## 🛣️ Roadmap
 
 - [ ] Media library
