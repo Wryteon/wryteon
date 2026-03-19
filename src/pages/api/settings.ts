@@ -1,6 +1,10 @@
 import type { APIRoute } from "astro";
 import { validateSession } from "../../lib/auth";
 import { setSiteSetting } from "../../lib/db";
+import {
+  MAX_BLOG_HEADLINE_LENGTH,
+  MAX_BLOG_NAME_LENGTH,
+} from "../../lib/siteSettings";
 
 export const prerender = false;
 
@@ -29,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  if (typeof data.blogName !== "string" || data.blogName.trim().length === 0) {
+  if (typeof data.blogName !== "string") {
     return new Response(
       JSON.stringify({ error: "blogName must be a non-empty string" }),
       {
@@ -39,10 +43,41 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  await setSiteSetting("blogName", data.blogName.trim());
+  const blogName = data.blogName.trim();
+  if (blogName.length === 0 || blogName.length > MAX_BLOG_NAME_LENGTH) {
+    return new Response(
+      JSON.stringify({
+        error: `blogName must be between 1 and ${MAX_BLOG_NAME_LENGTH} characters long`,
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  let blogHeadline: string | undefined;
 
   if (typeof data.blogHeadline === "string") {
-    await setSiteSetting("blogHeadline", data.blogHeadline.trim());
+    blogHeadline = data.blogHeadline.trim();
+
+    if (blogHeadline.length > MAX_BLOG_HEADLINE_LENGTH) {
+      return new Response(
+        JSON.stringify({
+          error: `blogHeadline must be at most ${MAX_BLOG_HEADLINE_LENGTH} characters long`,
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+  }
+
+  await setSiteSetting("blogName", blogName);
+
+  if (blogHeadline !== undefined) {
+    await setSiteSetting("blogHeadline", blogHeadline);
   }
 
   return new Response(JSON.stringify({ success: true }), {

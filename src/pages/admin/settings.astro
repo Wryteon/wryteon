@@ -1,6 +1,10 @@
 ---
 import { getSiteSettings } from "../../lib/db";
 import { validateSession } from "../../lib/auth";
+import {
+  MAX_BLOG_HEADLINE_LENGTH,
+  MAX_BLOG_NAME_LENGTH,
+} from "../../lib/siteSettings";
 
 export const prerender = false;
 
@@ -267,7 +271,7 @@ const settings = await getSiteSettings();
               name="blogName"
               value={settings.blogName}
               placeholder="My Blog"
-              maxlength={100}
+              maxlength={MAX_BLOG_NAME_LENGTH}
               required
             />
             <p class="field-hint">
@@ -283,7 +287,7 @@ const settings = await getSiteSettings();
               name="blogHeadline"
               value={settings.blogHeadline}
               placeholder="A short description of your blog"
-              maxlength={200}
+              maxlength={MAX_BLOG_HEADLINE_LENGTH}
             />
             <p class="field-hint">
               A short tagline displayed below the blog name on the homepage.
