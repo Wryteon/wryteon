@@ -33,6 +33,13 @@ export const Posts = defineTable({
   },
 });
 
+export const SiteSettings = defineTable({
+  columns: {
+    key: column.text({ primaryKey: true }),
+    value: column.text(),
+  },
+});
+
 export default defineDb({
-  tables: { Users, Sessions, Posts },
+  tables: { Users, Sessions, Posts, SiteSettings },
 });

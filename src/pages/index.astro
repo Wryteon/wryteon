@@ -1,8 +1,9 @@
 ---
 import type { Block } from "../general/components/BlockRenderer.astro";
-import { getPublishedPosts, type PostRecord } from "../lib/db";
+import { getPublishedPosts, getSiteSettings, type PostRecord } from "../lib/db";
 
 const posts = await getPublishedPosts();
+const settings = await getSiteSettings();
 
 type PostWithExcerpt = PostRecord & { excerpt: string };
 
@@ -45,7 +46,7 @@ const postsWithExcerpt: Array<PostWithExcerpt> = posts.map((post) => {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
-    <title>Wryteon - Modern Block-Based CMS</title>
+    <title>{settings.blogName} - {settings.blogHeadline}</title>
     <style>
       body {
         font-family:
@@ -125,8 +126,8 @@ const postsWithExcerpt: Array<PostWithExcerpt> = posts.map((post) => {
   <body>
     <div class="container">
       <div class="header">
-        <h1>Wryteon</h1>
-        <p>A modern block-based blogging CMS built with Astro</p>
+        <h1>{settings.blogName}</h1>
+        <p>{settings.blogHeadline}</p>
       </div>
 
       <ul class="posts-list">

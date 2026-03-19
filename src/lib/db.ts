@@ -1,6 +1,11 @@
-import { db, Posts, eq, desc } from "astro:db";
+import { db, Posts, SiteSettings, eq, desc } from "astro:db";
 
 import type { PostPayload, PostStatus } from "../types/post";
+
+export const SITE_SETTING_DEFAULTS: Record<string, string> = {
+    blogName: "Wryteon",
+    blogHeadline: "A modern block-based blogging CMS built with Astro",
+};
 
 export type PostRecord = typeof Posts.$inferSelect;
 
@@ -144,4 +149,47 @@ export async function deletePost(id: string): Promise<boolean> {
     await db.delete(Posts).where(eq(Posts.id, id));
     logDb("deletePost:deleted", { id });
     return true;
+}
+
+export async function getSiteSetting(key: string): Promise<string> {
+    const result = await db
+        .select()
+        .from(SiteSettings)
+        .where(eq(SiteSettings.key, key))
+        .limit(1);
+
+    return result[0]?.value ?? SITE_SETTING_DEFAULTS[key] ?? "";
+}
+
+export async function getSiteSettings(): Promise<Record<string, string>> {
+    const rows = await db.select().from(SiteSettings).orderBy(SiteSettings.key);
+    const settings: Record<string, string> = { ...SITE_SETTING_DEFAULTS };
+
+    for (const row of rows) {
+        settings[row.key] = row.value;
+    }
+
+    logDb("getSiteSettings", { keys: Object.keys(settings) });
+    return settings;
+}
+
+export async function setSiteSetting(key: string, value: string): Promise<void> {
+    const existing = await db
+        .select()
+        .from(SiteSettings)
+        .where(eq(SiteSettings.key, key))
+        .limit(1);
+
+    if (existing.length > 0) {
+        await db
+            .update(SiteSettings)
+            .set({ value })
+            .where(eq(SiteSettings.key, key));
+
+        logDb("setSiteSetting:update", { key });
+        return;
+    }
+
+    await db.insert(SiteSettings).values({ key, value });
+    logDb("setSiteSetting:insert", { key });
 }

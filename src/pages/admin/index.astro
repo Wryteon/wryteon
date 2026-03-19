@@ -1,5 +1,5 @@
 ---
-import { getPostCount } from "../../lib/db";
+import { getPostCount, getSiteSettings } from "../../lib/db";
 import { validateSession } from "../../lib/auth";
 import AdminLayout from "../../layouts/AdminLayout.astro";
 
@@ -20,6 +20,9 @@ const session = sessionToken ? await validateSession(sessionToken) : null;
 if (!session) {
   return Astro.redirect("/auth/login");
 }
+
+const settings = await getSiteSettings();
+const currentYear = new Date().getFullYear();
 ---
 
 <AdminLayout>
@@ -27,7 +30,7 @@ if (!session) {
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width" />
-      <title>Admin Dashboard - Wryteon</title>
+      <title>Admin Dashboard - {settings.blogName}</title>
       <style>
         * {
           margin: 0;
@@ -245,17 +248,18 @@ if (!session) {
     <body>
       <div class="container">
         <nav class="navbar">
-          <div class="logo">🚀 Wryteon</div>
+          <div class="logo">🚀 {settings.blogName}</div>
           <ul class="nav-links">
             <li><a href="/admin">Dashboard</a></li>
             <li><a href="/admin/posts">All Posts</a></li>
+            <li><a href="/admin/settings">Settings</a></li>
             <li><a href="/">View Site</a></li>
             <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
           </ul>
         </nav>
 
         <div class="dashboard-header">
-          <h1>Welcome to Wryteon Admin</h1>
+          <h1>Welcome to {settings.blogName} Admin</h1>
           <p>Manage your blog posts with our powerful block-based editor</p>
         </div>
 
@@ -291,6 +295,12 @@ if (!session) {
             <p>Manage and edit existing posts</p>
           </a>
 
+          <a href="/admin/settings" class="action-card">
+            <div class="action-icon">⚙️</div>
+            <h3>Site Settings</h3>
+            <p>Update blog name and headline</p>
+          </a>
+
           <a href="/" class="action-card">
             <div class="action-icon">👁️</div>
             <h3>View Blog</h3>
@@ -299,7 +309,7 @@ if (!session) {
         </div>
 
         <div class="footer">
-          <p>&copy; 2025 Wryteon - Modern Block-Based CMS</p>
+          <p>&copy; {currentYear} {settings.blogName}</p>
         </div>
       </div>
     </body>
