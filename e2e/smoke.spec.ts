@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -11,7 +11,7 @@ function requireEnv(name: string): string {
   return value.trim();
 }
 
-async function loginAsAdmin(page) {
+async function loginAsAdmin(page: Page) {
   const email = requireEnv("WRYTEON_ADMIN_EMAIL");
   const password = requireEnv("WRYTEON_ADMIN_PASSWORD");
 
@@ -22,6 +22,16 @@ async function loginAsAdmin(page) {
     page.waitForURL(/\/admin(\/|$)/),
     page.locator('button[type="submit"]').click(),
   ]);
+}
+
+function requireBaseUrl(): string {
+  const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL;
+  if (typeof baseUrl === "string" && baseUrl.trim().length > 0) {
+    return baseUrl.trim().replace(/\/$/, "");
+  }
+
+  const e2ePort = Number(process.env.E2E_PORT ?? 4517);
+  return `http://127.0.0.1:${e2ePort}`;
 }
 
 test("login works with email", async ({ page }) => {
@@ -71,6 +81,8 @@ test("can upload an image and render it in a post", async ({ page }) => {
 
   await loginAsAdmin(page);
 
+  const baseUrl = requireBaseUrl();
+
   const slug = `e2e-image-${Date.now()}`;
   const title = `E2E Image ${slug}`;
 
@@ -81,6 +93,9 @@ test("can upload an image and render it in a post", async ({ page }) => {
         mimeType: "image/png",
         buffer: Buffer.from("hello"),
       },
+    },
+    headers: {
+      Origin: baseUrl,
     },
   });
 

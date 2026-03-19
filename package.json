@@ -16,29 +16,29 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.5",
-    "@astrojs/db": "^0.18.2",
-    "@astrojs/node": "^9.5.0",
-    "@editorjs/code": "^2.9.3",
+    "@astrojs/check": "^0.9.8",
+    "@astrojs/db": "^0.20.1",
+    "@astrojs/node": "^10.0.2",
+    "@editorjs/code": "^2.9.4",
     "@editorjs/delimiter": "^1.4.2",
-    "@editorjs/editorjs": "^2.31.0",
+    "@editorjs/editorjs": "^2.31.5",
     "@editorjs/header": "^2.8.8",
     "@editorjs/image": "^2.10.3",
-    "@editorjs/list": "^2.0.8",
+    "@editorjs/list": "^2.0.9",
     "@editorjs/paragraph": "^2.11.7",
     "@editorjs/quote": "^2.7.6",
-    "astro": "^5.15.3",
+    "astro": "^6.0.6",
     "bcrypt": "^6.0.0",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^24.3.0",
-    "@typescript-eslint/parser": "^8.46.2",
-    "eslint": "^9.39.0",
-    "eslint-plugin-astro": "^1.4.0",
-    "@playwright/test": "^1.55.0",
-    "dotenv": "^16.4.7",
-    "vitest": "^3.2.4"
+    "@types/node": "^25.5.0",
+    "@typescript-eslint/parser": "^8.57.1",
+    "dotenv": "^17.3.1",
+    "eslint": "^10.0.3",
+    "eslint-plugin-astro": "^1.6.0",
+    "vitest": "^4.1.0"
   }
 }
