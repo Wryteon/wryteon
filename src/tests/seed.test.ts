@@ -38,7 +38,6 @@ vi.mock("@astrojs/db/utils", () => ({
 vi.mock("../../db/config", () => ({
   Users: {
     id: "id",
-    username: "username",
     email: "email",
     passwordHash: "passwordHash",
     createdAt: "createdAt",
@@ -60,26 +59,24 @@ describe("db seed", () => {
     insertValuesMock.mockClear();
     hashMock.mockClear();
 
-    process.env.WRYTEON_ADMIN_USERNAME = "admin";
     process.env.WRYTEON_ADMIN_EMAIL = "admin@example.com";
     process.env.WRYTEON_ADMIN_PASSWORD = "secret-password";
   });
 
-  it("creates the admin when username and email are absent", async () => {
+  it("creates the admin when the email is absent", async () => {
     const seedModule = await import("../../db/seed");
 
-    selectQueue.push([], []);
+    selectQueue.push([]);
 
     await seedModule.default();
 
-    expect(selectMock).toHaveBeenCalledTimes(2);
+    expect(selectMock).toHaveBeenCalledTimes(1);
     expect(hashMock).toHaveBeenCalledWith("secret-password", 10);
     expect(insertMock).toHaveBeenCalledTimes(1);
 
     const payload = getLatestInsertPayload();
 
     expect(payload).toMatchObject({
-      username: "admin",
       email: "admin@example.com",
       passwordHash: "hashed-password",
     });
@@ -87,7 +84,7 @@ describe("db seed", () => {
     expect(typeof payload.id).toBe("string");
   });
 
-  it("skips insert when the username already exists", async () => {
+  it("skips insert when the email already exists", async () => {
     const seedModule = await import("../../db/seed");
 
     selectQueue.push([{ id: "existing-user" }]);
@@ -99,14 +96,15 @@ describe("db seed", () => {
     expect(insertMock).not.toHaveBeenCalled();
   });
 
-  it("skips insert when the email already exists", async () => {
+  it("skips insert when email or password is missing", async () => {
     const seedModule = await import("../../db/seed");
 
-    selectQueue.push([], [{ id: "existing-user" }]);
+    process.env.WRYTEON_ADMIN_EMAIL = "";
+    process.env.WRYTEON_ADMIN_PASSWORD = "";
 
     await seedModule.default();
 
-    expect(selectMock).toHaveBeenCalledTimes(2);
+    expect(selectMock).not.toHaveBeenCalled();
     expect(hashMock).not.toHaveBeenCalled();
     expect(insertMock).not.toHaveBeenCalled();
   });

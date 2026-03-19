@@ -37,7 +37,6 @@ vi.mock("../../db/config", () => {
   return {
     Users: {
       id: "id",
-      username: "username",
       email: "email",
       passwordHash: "passwordHash",
       createdAt: "createdAt",
@@ -142,5 +141,51 @@ describe("auth", () => {
 
     expect(result).toEqual({ userId: "user-2" });
     expect(deleteFn).not.toHaveBeenCalled();
+  });
+
+  it("createUser inserts an email-only user", async () => {
+    const { createUser } = await import("./auth");
+
+    const user = await createUser("admin@example.com", "secret-password");
+
+    expect(insertFn).toHaveBeenCalledTimes(1);
+    expect(insertValues).toHaveBeenCalledTimes(1);
+
+    const payload = insertValues.mock.calls[0]?.[0];
+    expect(payload).toMatchObject({
+      email: "admin@example.com",
+    });
+    expect(payload.passwordHash).toEqual(expect.any(String));
+    expect(payload.createdAt).toBeInstanceOf(Date);
+    expect(user).toMatchObject({
+      id: expect.any(String),
+      email: "admin@example.com",
+    });
+  });
+
+  it("verifyLogin authenticates with email", async () => {
+    const { hashPassword, verifyLogin } = await import("./auth");
+
+    selectResult = [
+      {
+        id: "user-7",
+        email: "admin@example.com",
+        passwordHash: await hashPassword("secret-password"),
+      },
+    ];
+
+    const result = await verifyLogin("admin@example.com", "secret-password");
+
+    expect(result).toEqual({ userId: "user-7" });
+  });
+
+  it("verifyLogin returns null for unknown email", async () => {
+    const { verifyLogin } = await import("./auth");
+
+    selectResult = [];
+
+    const result = await verifyLogin("missing@example.com", "secret-password");
+
+    expect(result).toBeNull();
   });
 });

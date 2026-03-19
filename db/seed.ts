@@ -26,17 +26,7 @@ function getEnv(name: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-async function adminExists(username: string, email: string): Promise<boolean> {
-  const byUsername = await db
-    .select({ id: UsersTable.id })
-    .from(UsersTable)
-    .where(eq(UsersTable.username, username))
-    .limit(1);
-
-  if (byUsername.length > 0) {
-    return true;
-  }
-
+async function adminExists(email: string): Promise<boolean> {
   const byEmail = await db
     .select({ id: UsersTable.id })
     .from(UsersTable)
@@ -49,31 +39,26 @@ async function adminExists(username: string, email: string): Promise<boolean> {
 export default async function seed() {
   // If env vars are missing, try to populate them from `.env`.
   // (dotenv won't override already-set env vars by default.)
-  if (
-    !process.env.WRYTEON_ADMIN_USERNAME ||
-    !process.env.WRYTEON_ADMIN_EMAIL ||
-    !process.env.WRYTEON_ADMIN_PASSWORD
-  ) {
+  if (!process.env.WRYTEON_ADMIN_EMAIL || !process.env.WRYTEON_ADMIN_PASSWORD) {
     await maybeLoadDotenv();
   }
 
-  const username = getEnv("WRYTEON_ADMIN_USERNAME");
   const email = getEnv("WRYTEON_ADMIN_EMAIL");
   const adminPassword = getEnv("WRYTEON_ADMIN_PASSWORD");
 
   // Astro DB will attempt to execute db/seed.ts during startup if it exists.
   // To avoid breaking builds/runs, treat missing credentials as "seed disabled".
-  if (!username || !email || !adminPassword) {
-    const anySet = Boolean(username || email || adminPassword);
+  if (!email || !adminPassword) {
+    const anySet = Boolean(email || adminPassword);
     if (anySet) {
       console.log(
-        "ℹ️  Seed skipped: set WRYTEON_ADMIN_USERNAME, WRYTEON_ADMIN_EMAIL, and WRYTEON_ADMIN_PASSWORD to create an admin user.",
+        "ℹ️  Seed skipped: set WRYTEON_ADMIN_EMAIL and WRYTEON_ADMIN_PASSWORD to create an admin user.",
       );
     }
     return;
   }
 
-  if (await adminExists(username, email)) {
+  if (await adminExists(email)) {
     console.log("ℹ️  Admin user already exists; skipping seed");
     return;
   }
@@ -83,14 +68,12 @@ export default async function seed() {
   try {
     await db.insert(UsersTable).values({
       id: crypto.randomUUID(),
-      username,
       email,
       passwordHash,
       createdAt: new Date(),
     });
 
     console.log("✅ Default admin user created");
-    console.log(`   Username: ${username}`);
     console.log(`   Email: ${email}`);
     console.log("   Password: (set via WRYTEON_ADMIN_PASSWORD)");
     console.log("   (Change this password after first login!)");

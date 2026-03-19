@@ -12,11 +12,11 @@ function requireEnv(name: string): string {
 }
 
 async function loginAsAdmin(page) {
-  const username = requireEnv("WRYTEON_ADMIN_USERNAME");
+  const email = requireEnv("WRYTEON_ADMIN_EMAIL");
   const password = requireEnv("WRYTEON_ADMIN_PASSWORD");
 
   await page.goto("/auth/login");
-  await page.locator('input[name="username"]').fill(username);
+  await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await Promise.all([
     page.waitForURL(/\/admin(\/|$)/),
@@ -24,7 +24,7 @@ async function loginAsAdmin(page) {
   ]);
 }
 
-test("login works", async ({ page }) => {
+test("login works with email", async ({ page }) => {
   await loginAsAdmin(page);
   await expect(
     page.getByRole("heading", { name: "Welcome to Wryteon Admin" }),

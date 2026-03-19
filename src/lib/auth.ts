@@ -86,14 +86,14 @@ export async function validateSession(
 }
 
 /**
- * Get user by username
+ * Get user by email
  */
-export async function getUserByUsername(username: string) {
+export async function getUserByEmail(email: string) {
   try {
     const result = await db
       .select()
       .from(UsersTable)
-      .where(eq(UsersTable.username, username))
+      .where(eq(UsersTable.email, email))
       .limit(1);
 
     return result[0] ?? null;
@@ -125,7 +125,6 @@ export async function getUserById(userId: string) {
  * Create a new user
  */
 export async function createUser(
-  username: string,
   email: string,
   password: string
 ) {
@@ -135,13 +134,12 @@ export async function createUser(
 
     await db.insert(UsersTable).values({
       id: userId,
-      username,
       email,
       passwordHash,
       createdAt: new Date(),
     });
 
-    return { id: userId, username, email };
+    return { id: userId, email };
   } catch (error) {
     console.error("Create user error:", error);
     throw error;
@@ -152,10 +150,10 @@ export async function createUser(
  * Verify login credentials
  */
 export async function verifyLogin(
-  username: string,
+  email: string,
   password: string
 ): Promise<{ userId: string } | null> {
-  const user = await getUserByUsername(username);
+  const user = await getUserByEmail(email);
 
   if (!user) {
     return null;

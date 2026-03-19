@@ -160,7 +160,6 @@ docker run --rm -p 4321:4321 \
    -e PORT=4321 \
    -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
    -e UPLOADS_DIR=/data/uploads \
-   -e WRYTEON_ADMIN_USERNAME=admin \
    -e WRYTEON_ADMIN_EMAIL=admin@example.com \
    -e WRYTEON_ADMIN_PASSWORD=change-me \
    -v wryteon-data:/data \
@@ -176,7 +175,6 @@ docker run --rm -p 4321:4321 \
    -e PORT=4321 \
    -e ASTRO_DB_REMOTE_URL=file:/data/wryteon.sqlite \
    -e UPLOADS_DIR=/data/uploads \
-   -e WRYTEON_ADMIN_USERNAME=admin \
    -e WRYTEON_ADMIN_EMAIL=admin@example.com \
    -e WRYTEON_ADMIN_PASSWORD=change-me \
    -v "$PWD/.docker-data:/data" \
@@ -195,7 +193,6 @@ On container start, the entrypoint will:
 
 1. Run `astro db push` (idempotent)
 2. Run `astro db execute db/seed.ts --remote` to create a default admin user if these env vars are set:
-   - `WRYTEON_ADMIN_USERNAME`
    - `WRYTEON_ADMIN_EMAIL`
    - `WRYTEON_ADMIN_PASSWORD`
 
@@ -244,7 +241,6 @@ npm run test:e2e
 The smoke tests expect the same admin credentials as the seed script:
 
 ```bash
-export WRYTEON_ADMIN_USERNAME="admin"
 export WRYTEON_ADMIN_EMAIL="admin@example.com"
 export WRYTEON_ADMIN_PASSWORD="change-me"
 npm run test:e2e
@@ -281,7 +277,7 @@ Local development defaults to Astro DB's ephemeral `.astro/content.db`, which is
 3. **Push the schema**
    - Execute `npx astro db push --remote` to create the app tables in the new database.
 4. **Seed sample data**
-   - Set `WRYTEON_ADMIN_USERNAME`, `WRYTEON_ADMIN_EMAIL`, and `WRYTEON_ADMIN_PASSWORD`, then run `npx astro db execute db/seed.ts --remote`.
+   - Set `WRYTEON_ADMIN_EMAIL` and `WRYTEON_ADMIN_PASSWORD`, then run `npx astro db execute db/seed.ts --remote`.
    - This creates the initial admin user. If you want to log into `/auth/login`, you need this step or another way to create a user.
 5. **Use the remote flag in dev**
    - Start the dev server with `npm run dev -- --remote` (or `npx astro dev --remote`).
