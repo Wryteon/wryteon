@@ -9,6 +9,7 @@ const selectChain = {
   where: vi.fn(() => selectChain),
   orderBy: vi.fn(async () => selectResult),
   limit: vi.fn(async () => selectResult),
+  then: (resolve: (value: any[]) => unknown) => Promise.resolve(selectResult).then(resolve),
 };
 
 const insertValues = vi.fn(async () => undefined);
@@ -66,6 +67,23 @@ beforeEach(() => {
 });
 
 describe("db helpers", () => {
+  it("getPostStatusCounts returns draft and published totals", async () => {
+    const { getPostStatusCounts } = await import("./db");
+
+    selectResult = [
+      { status: "draft" },
+      { status: "published" },
+      { status: "draft" },
+    ];
+
+    const counts = await getPostStatusCounts();
+
+    expect(counts).toEqual({
+      draft: 2,
+      published: 1,
+    });
+  });
+
   it("savePost inserts when missing", async () => {
     const { savePost } = await import("./db");
 

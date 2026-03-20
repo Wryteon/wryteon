@@ -1,0 +1,236 @@
+---
+import { getSiteSettings } from "../../lib/db";
+
+export interface Props {
+  activePage?: "dashboard" | "new-post" | "posts" | "settings";
+}
+
+const { activePage = "dashboard" } = Astro.props;
+const settings = await getSiteSettings();
+
+const isActive = (page: Props["activePage"]) => activePage === page;
+---
+
+<nav class="admin-navbar">
+  <div class="nav-top">
+    <div class="logo">🚀 {settings.blogName}</div>
+    <a href="/auth/logout" class="mobile-signout">Sign Out</a>
+  </div>
+
+  <ul class="nav-links">
+    <li>
+      <a href="/admin" class={isActive("dashboard") ? "active" : undefined}>
+        Dashboard
+      </a>
+    </li>
+    <li>
+      <a
+        href="/admin/new-post"
+        class={`quick-create-link ${isActive("new-post") ? "active" : ""}`.trim()}
+      >
+        + New Post
+      </a>
+    </li>
+    <li>
+      <a href="/admin/posts" class={isActive("posts") ? "active" : undefined}>
+        All Posts
+      </a>
+    </li>
+    <li>
+      <a
+        href="/admin/settings"
+        class={isActive("settings") ? "active" : undefined}
+      >
+        Settings
+      </a>
+    </li>
+    <li><a href="/">View Site</a></li>
+    <li><a href="/auth/logout" class="logout-btn">Sign Out</a></li>
+  </ul>
+
+  <div class="mobile-tabs" role="navigation" aria-label="Admin navigation">
+    <a
+      href="/admin"
+      class={`tab-link ${isActive("dashboard") ? "active" : ""}`.trim()}
+    >
+      <span class="tab-icon">🏠</span>
+      <span>Home</span>
+    </a>
+    <a
+      href="/admin/new-post"
+      class={`tab-link ${isActive("new-post") ? "active" : ""}`.trim()}
+    >
+      <span class="tab-icon">✍️</span>
+      <span>New</span>
+    </a>
+    <a
+      href="/admin/posts"
+      class={`tab-link ${isActive("posts") ? "active" : ""}`.trim()}
+    >
+      <span class="tab-icon">📝</span>
+      <span>Posts</span>
+    </a>
+    <a
+      href="/admin/settings"
+      class={`tab-link ${isActive("settings") ? "active" : ""}`.trim()}
+    >
+      <span class="tab-icon">⚙️</span>
+      <span>Settings</span>
+    </a>
+    <a href="/" class="tab-link">
+      <span class="tab-icon">👁️</span>
+      <span>Site</span>
+    </a>
+  </div>
+</nav>
+
+<style>
+  .admin-navbar {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 12px 24px rgba(14, 17, 44, 0.15);
+    position: sticky;
+    top: 12px;
+    z-index: 40;
+  }
+
+  .logo {
+    font-size: 27px;
+    font-weight: 800;
+    color: #667eea;
+  }
+
+  .nav-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mobile-signout {
+    display: none;
+    text-decoration: none;
+    background: #ff6b6b;
+    color: white;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 10px;
+    list-style: none;
+    align-items: center;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: #4b5563;
+    font-weight: 600;
+    transition:
+      color 0.2s,
+      background-color 0.2s;
+    padding: 8px 12px;
+    border-radius: 999px;
+  }
+
+  .nav-links a:hover {
+    color: #1f2a44;
+    background: #eef2ff;
+  }
+
+  .nav-links a.active {
+    color: #1f2a44;
+    background: #e0e7ff;
+  }
+
+  .logout-btn {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .logout-btn:hover {
+    background-color: #ff5252;
+  }
+
+  .quick-create-link {
+    background: linear-gradient(135deg, #4f67e8 0%, #6f43b3 100%);
+    color: white !important;
+  }
+
+  .quick-create-link:hover {
+    background: linear-gradient(135deg, #4259d2 0%, #6037a0);
+  }
+
+  .quick-create-link.active {
+    background: linear-gradient(135deg, #3f56ce 0%, #573296 100%);
+  }
+
+  .mobile-tabs {
+    display: none;
+    margin-top: 12px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .tab-link {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 56px;
+    border-radius: 12px;
+    color: #334155;
+    background: #eef2ff;
+    padding: 6px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .tab-icon {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .tab-link.active {
+    background: #dbe4ff;
+    color: #1f2a44;
+  }
+
+  @media (max-width: 768px) {
+    .admin-navbar {
+      top: 8px;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    .nav-links {
+      display: none;
+    }
+
+    .mobile-signout {
+      display: inline-block;
+    }
+
+    .mobile-tabs {
+      display: grid;
+    }
+  }
+</style>
