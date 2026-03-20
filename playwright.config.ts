@@ -26,6 +26,7 @@ if (missingE2eEnv.length > 0) {
 export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
+  workers: 1,
   expect: {
     timeout: 10_000,
   },
@@ -35,8 +36,14 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "chromium",
+      name: "desktop-chromium",
+      grepInvert: /@mobile/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "mobile-chromium",
+      grep: /@mobile/,
+      use: { ...devices["Pixel 7"] },
     },
   ],
   webServer: {
