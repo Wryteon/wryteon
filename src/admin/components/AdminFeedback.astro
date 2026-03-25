@@ -257,6 +257,11 @@
       return false;
     }
 
+    // Prevent overwriting an in-flight resolver.
+    if (resolver) {
+      return false;
+    }
+
     titleElement.textContent = options.title ?? "Confirm action";
     messageElement.textContent = options.message;
     acceptButton.textContent = options.confirmLabel ?? "Confirm";
