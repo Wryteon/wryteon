@@ -234,15 +234,15 @@ test("dashboard stats reflect draft and published post totals", async ({
 
   await page.goto("/admin");
 
-  await expect.poll(() => getDashboardStatCount(page, "Total Posts")).toBe(
-    initialTotal + 2,
-  );
-  await expect.poll(() => getDashboardStatCount(page, "Drafts")).toBe(
-    initialDrafts + 1,
-  );
-  await expect.poll(() => getDashboardStatCount(page, "Published")).toBe(
-    initialPublished + 1,
-  );
+  await expect
+    .poll(() => getDashboardStatCount(page, "Total Posts"))
+    .toBe(initialTotal + 2);
+  await expect
+    .poll(() => getDashboardStatCount(page, "Drafts"))
+    .toBe(initialDrafts + 1);
+  await expect
+    .poll(() => getDashboardStatCount(page, "Published"))
+    .toBe(initialPublished + 1);
 });
 
 test("admin navigation uses mobile tabs @mobile", async ({ page }) => {
@@ -264,20 +264,30 @@ test("mobile tabs navigate between admin pages @mobile", async ({ page }) => {
 
   await page.goto("/admin");
 
-  await page.locator(".mobile-tabs").getByRole("link", { name: "Posts" }).click();
+  await page
+    .locator(".mobile-tabs")
+    .getByRole("link", { name: "Posts" })
+    .click();
   await expect(page).toHaveURL(/\/admin\/posts$/);
   await expect(page.getByRole("heading", { name: "All Posts" })).toBeVisible();
 
-  await page.locator(".mobile-tabs").getByRole("link", { name: "Settings" }).click();
+  await page
+    .locator(".mobile-tabs")
+    .getByRole("link", { name: "Settings" })
+    .click();
   await expect(page).toHaveURL(/\/admin\/settings$/);
-  await expect(page.getByRole("heading", { name: "Site Settings" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Site Settings" }),
+  ).toBeVisible();
 
   await page.locator(".mobile-tabs").getByRole("link", { name: "New" }).click();
   await expect(page).toHaveURL(/\/admin\/new-post$/);
   await expect(page.locator("#title-input")).toBeVisible();
 });
 
-test("mobile editor saves draft with inline feedback @mobile", async ({ page }) => {
+test("mobile editor saves draft with inline feedback @mobile", async ({
+  page,
+}) => {
   await loginAsAdmin(page);
 
   const slug = `e2e-mobile-draft-${Date.now()}`;
@@ -343,17 +353,58 @@ test("posts page can cancel delete on mobile @mobile", async ({ page }) => {
   await expect(page.locator("tbody tr", { hasText: title })).toHaveCount(1);
 });
 
+test("confirmation dialog defaults to non-danger tone", async ({ page }) => {
+  await loginAsAdmin(page);
+  await page.goto("/admin/posts");
+
+  await page.evaluate(() => {
+    void (
+      window as Window & {
+        AdminFeedback?: {
+          confirm: (options: {
+            title?: string;
+            message: string;
+            confirmLabel?: string;
+            cancelLabel?: string;
+            tone?: "danger" | "default";
+          }) => Promise<boolean>;
+        };
+      }
+    ).AdminFeedback?.confirm({
+      title: "Tone check",
+      message: "This should use the default button tone.",
+      confirmLabel: "Proceed",
+      cancelLabel: "Cancel",
+    });
+  });
+
+  await expect(page.locator("#admin-confirm-overlay")).toBeVisible();
+  await expect
+    .poll(async () => {
+      return page
+        .locator("#admin-confirm-accept")
+        .evaluate((button) => button.classList.contains("danger"));
+    })
+    .toBe(false);
+
+  await page.locator("#admin-confirm-cancel").click();
+  await expect(page.locator("#admin-confirm-overlay")).toBeHidden();
+});
+
 test("settings form saves correctly on mobile @mobile", async ({ page }) => {
   await loginAsAdmin(page);
 
   await page.goto("/admin/settings");
 
   const originalName = (await page.locator("#blogName").inputValue()).trim();
-  const originalHeadline = (await page.locator("#blogHeadline").inputValue()).trim();
+  const originalHeadline = (
+    await page.locator("#blogHeadline").inputValue()
+  ).trim();
   const updatedName = `${originalName} Mobile`;
-  const updatedHeadline = originalHeadline.length > 0
-    ? `${originalHeadline} mobile`
-    : "Mobile headline";
+  const updatedHeadline =
+    originalHeadline.length > 0
+      ? `${originalHeadline} mobile`
+      : "Mobile headline";
 
   await page.locator("#blogName").fill(updatedName);
   await page.locator("#blogHeadline").fill(updatedHeadline);
@@ -398,6 +449,13 @@ test("posts page deletes with custom confirmation UI", async ({ page }) => {
   await expect(page.locator("#admin-confirm-message")).toContainText(
     "cannot undo this action",
   );
+  await expect
+    .poll(async () => {
+      return page
+        .locator("#admin-confirm-accept")
+        .evaluate((button) => button.classList.contains("danger"));
+    })
+    .toBe(true);
 
   await page.locator("#admin-confirm-accept").click();
 

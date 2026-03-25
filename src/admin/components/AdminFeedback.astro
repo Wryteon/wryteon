@@ -1,4 +1,5 @@
-<div class="admin-toast-region" id="admin-toast-region" aria-live="polite"></div>
+<div class="admin-toast-region" id="admin-toast-region" aria-live="polite">
+</div>
 
 <div class="admin-confirm-overlay" id="admin-confirm-overlay" hidden>
   <div class="admin-confirm-backdrop" data-close-confirm></div>
@@ -12,10 +13,18 @@
     <h2 id="admin-confirm-title">Confirm action</h2>
     <p id="admin-confirm-message"></p>
     <div class="admin-confirm-actions">
-      <button type="button" class="confirm-btn secondary" id="admin-confirm-cancel">
+      <button
+        type="button"
+        class="confirm-btn secondary"
+        id="admin-confirm-cancel"
+      >
         Cancel
       </button>
-      <button type="button" class="confirm-btn danger" id="admin-confirm-accept">
+      <button
+        type="button"
+        class="confirm-btn danger"
+        id="admin-confirm-accept"
+      >
         Confirm
       </button>
     </div>
@@ -238,7 +247,13 @@
   }
 
   async function confirm(options: AdminConfirmOptions): Promise<boolean> {
-    if (!overlay || !titleElement || !messageElement || !acceptButton || !cancelButton) {
+    if (
+      !overlay ||
+      !titleElement ||
+      !messageElement ||
+      !acceptButton ||
+      !cancelButton
+    ) {
       return false;
     }
 
@@ -246,7 +261,7 @@
     messageElement.textContent = options.message;
     acceptButton.textContent = options.confirmLabel ?? "Confirm";
     cancelButton.textContent = options.cancelLabel ?? "Cancel";
-    acceptButton.classList.toggle("danger", options.tone !== "default");
+    acceptButton.classList.toggle("danger", options.tone === "danger");
 
     overlay.hidden = false;
     acceptButton.focus();
