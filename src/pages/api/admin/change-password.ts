@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { changeUserPassword, validateSession } from "../../lib/auth";
-import { setSiteSetting } from "../../lib/db";
+import { changeUserPassword, validateSession } from "../../../lib/auth";
+import { setSiteSetting } from "../../../lib/db";
 
 export const prerender = false;
 

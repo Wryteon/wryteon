@@ -5,6 +5,7 @@ import {
   MAX_BLOG_HEADLINE_LENGTH,
   MAX_BLOG_NAME_LENGTH,
 } from "../../lib/siteSettings";
+import { APP_ROUTES } from "../../lib/routes";
 import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 import AdminNav from "../../admin/components/AdminNav.astro";
 
@@ -18,7 +19,7 @@ const sessionToken = cookies
 
 const session = sessionToken ? await validateSession(sessionToken) : null;
 if (!session) {
-  return Astro.redirect("/auth/login");
+  return Astro.redirect(APP_ROUTES.auth.login);
 }
 
 const settings = await getSiteSettings();
@@ -212,7 +213,10 @@ const settings = await getSiteSettings();
       }
     </style>
   </head>
-  <body>
+  <body
+    data-change-password-api-route={APP_ROUTES.api.changePassword}
+    data-settings-api-route={APP_ROUTES.api.settings}
+  >
     <div class="container">
       <AdminNav activePage="settings" />
 
@@ -335,6 +339,9 @@ const settings = await getSiteSettings();
       ) as HTMLButtonElement | null;
       const passwordStatusMsg = document.getElementById("password-status-msg");
       const passwordWarning = document.getElementById("password-warning");
+      const settingsApiRoute = document.body.dataset.settingsApiRoute;
+      const changePasswordApiRoute =
+        document.body.dataset.changePasswordApiRoute;
 
       function showStatus(
         message: string,
@@ -372,7 +379,11 @@ const settings = await getSiteSettings();
         if (saveBtn) saveBtn.disabled = true;
 
         try {
-          const response = await fetch("/api/settings", {
+          if (!settingsApiRoute) {
+            throw new Error("Missing settings API route");
+          }
+
+          const response = await fetch(settingsApiRoute, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ blogName, blogHeadline }),
@@ -431,7 +442,11 @@ const settings = await getSiteSettings();
         if (passwordSaveBtn) passwordSaveBtn.disabled = true;
 
         try {
-          const response = await fetch("/api/change-password", {
+          if (!changePasswordApiRoute) {
+            throw new Error("Missing change-password API route");
+          }
+
+          const response = await fetch(changePasswordApiRoute, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

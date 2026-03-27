@@ -1,16 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { APP_ROUTES } from "../../../lib/routes";
+import { API_ROUTE_MODULES } from "./routes";
 
 const validateSession = vi.fn();
 const changeUserPassword = vi.fn();
 const setSiteSetting = vi.fn(async () => undefined);
 
-vi.mock("../../lib/auth", () => ({
+vi.mock("../../../lib/auth", () => ({
   validateSession,
   changeUserPassword,
   MIN_PASSWORD_LENGTH: 8,
 }));
 
-vi.mock("../../lib/db", () => ({
+vi.mock("../../../lib/db", () => ({
   setSiteSetting,
 }));
 
@@ -30,7 +32,7 @@ function createRequest(body: BodyInit | null, cookie = "session=valid-token") {
     headers.set("Content-Type", "application/json");
   }
 
-  return new Request("http://localhost/api/change-password", {
+  return new Request(`http://localhost${APP_ROUTES.api.changePassword}`, {
     method: "POST",
     headers,
     body,
@@ -46,9 +48,9 @@ beforeEach(() => {
   changeUserPassword.mockResolvedValue({ success: true });
 });
 
-describe("/api/change-password", () => {
+describe(APP_ROUTES.api.changePassword, () => {
   it("returns 401 without a valid session", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     validateSession.mockResolvedValue(null);
 
@@ -70,7 +72,7 @@ describe("/api/change-password", () => {
   });
 
   it("returns 400 for invalid JSON", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     const response = await POST({
       request: createRequest("{invalid-json"),
@@ -84,7 +86,7 @@ describe("/api/change-password", () => {
   });
 
   it("returns 400 for missing password fields", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     const response = await POST({
       request: createRequest(
@@ -100,7 +102,7 @@ describe("/api/change-password", () => {
   });
 
   it("returns 400 when new password and confirmation differ", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     const response = await POST({
       request: createRequest(
@@ -120,7 +122,7 @@ describe("/api/change-password", () => {
   });
 
   it("returns 400 when new password equals current password", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     const response = await POST({
       request: createRequest(
@@ -140,7 +142,7 @@ describe("/api/change-password", () => {
   });
 
   it("returns 400 when password update fails", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     changeUserPassword.mockResolvedValue({
       success: false,
@@ -165,7 +167,7 @@ describe("/api/change-password", () => {
   });
 
   it("stores password-changed flag on success", async () => {
-    const { POST } = await import("../../pages/api/change-password");
+    const { POST } = await import(API_ROUTE_MODULES.changePassword);
 
     const response = await POST({
       request: createRequest(

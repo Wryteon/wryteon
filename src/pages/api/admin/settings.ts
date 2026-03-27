@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import { validateSession } from "../../lib/auth";
-import { setSiteSetting } from "../../lib/db";
+import { validateSession } from "../../../lib/auth";
+import { setSiteSetting } from "../../../lib/db";
 import {
   MAX_BLOG_HEADLINE_LENGTH,
   MAX_BLOG_NAME_LENGTH,
-} from "../../lib/siteSettings";
+} from "../../../lib/siteSettings";
 
 export const prerender = false;
 

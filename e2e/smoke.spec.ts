@@ -136,7 +136,7 @@ test("can upload an image and render it in a post", async ({ page }) => {
   const slug = `e2e-image-${Date.now()}`;
   const title = `E2E Image ${slug}`;
 
-  const uploadResponse = await page.request.post("/api/upload", {
+  const uploadResponse = await page.request.post("/api/admin/upload", {
     multipart: {
       image: {
         name: "hello.png",
