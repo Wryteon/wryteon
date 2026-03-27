@@ -1,6 +1,5 @@
 ---
 import { savePost, getPostBySlug } from "../../lib/db";
-import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
 import type { PostPayload, PostStatus } from "../../types/post";
 import type { EditorDocument } from "../../types/editor";
@@ -10,18 +9,6 @@ import AdminNav from "../../admin/components/AdminNav.astro";
 import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
-
-// Validate session
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
-const session = sessionToken ? await validateSession(sessionToken) : null;
-if (!session) {
-  return Astro.redirect("/auth/login");
-}
 
 const isPostStatus = (value: unknown): value is PostStatus =>
   value === "draft" || value === "published";
@@ -224,7 +211,13 @@ const initialData = JSON.stringify(initialDocument);
           <AdminSecurityWarning />
         </div>
 
-        <div class="editor-status" id="editor-status" role="status" aria-live="polite"></div>
+        <div
+          class="editor-status"
+          id="editor-status"
+          role="status"
+          aria-live="polite"
+        >
+        </div>
 
         <div class="header">
           <input
@@ -259,15 +252,21 @@ const initialData = JSON.stringify(initialDocument);
 
     <script>
       type AdminFeedbackApi = {
-        toast: (message: string, type?: "success" | "error" | "info", title?: string) => void;
+        toast: (
+          message: string,
+          type?: "success" | "error" | "info",
+          title?: string,
+        ) => void;
       };
 
       // Handle editor save events
       const editorElement = document.querySelector("editor-component");
       const statusElement = document.getElementById("editor-status");
-      const adminFeedback = (window as Window & {
-        AdminFeedback?: AdminFeedbackApi;
-      }).AdminFeedback;
+      const adminFeedback = (
+        window as Window & {
+          AdminFeedback?: AdminFeedbackApi;
+        }
+      ).AdminFeedback;
 
       function showEditorStatus(
         message: string,
@@ -289,7 +288,10 @@ const initialData = JSON.stringify(initialDocument);
           const editorData = customEvent?.detail;
 
           if (!editorData) {
-            showEditorStatus("Editor data is missing from the save request.", "error");
+            showEditorStatus(
+              "Editor data is missing from the save request.",
+              "error",
+            );
             return;
           }
 
@@ -302,7 +304,10 @@ const initialData = JSON.stringify(initialDocument);
             !(slugInput instanceof HTMLInputElement) ||
             !(statusSelect instanceof HTMLSelectElement)
           ) {
-            showEditorStatus("The editor fields are not available on the page.", "error");
+            showEditorStatus(
+              "The editor fields are not available on the page.",
+              "error",
+            );
             return;
           }
 
@@ -311,7 +316,10 @@ const initialData = JSON.stringify(initialDocument);
           const status = statusSelect.value;
 
           if (!title || !slug) {
-            showEditorStatus("Please fill in both the title and slug fields.", "error");
+            showEditorStatus(
+              "Please fill in both the title and slug fields.",
+              "error",
+            );
             return;
           }
 
@@ -336,7 +344,11 @@ const initialData = JSON.stringify(initialDocument);
 
             if (response.ok) {
               showEditorStatus("Post saved successfully.", "success");
-              adminFeedback?.toast("Your changes were saved.", "success", "Post saved");
+              adminFeedback?.toast(
+                "Your changes were saved.",
+                "success",
+                "Post saved",
+              );
               // Redirect to the post if published
               if (status === "published") {
                 window.setTimeout(() => {
@@ -344,11 +356,17 @@ const initialData = JSON.stringify(initialDocument);
                 }, 500);
               }
             } else {
-              showEditorStatus("The post could not be saved. Please try again.", "error");
+              showEditorStatus(
+                "The post could not be saved. Please try again.",
+                "error",
+              );
             }
           } catch (error) {
             console.error("Save error:", error);
-            showEditorStatus("A network error prevented saving the post.", "error");
+            showEditorStatus(
+              "A network error prevented saving the post.",
+              "error",
+            );
           }
         });
       }

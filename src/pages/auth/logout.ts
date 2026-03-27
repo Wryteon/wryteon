@@ -1,4 +1,4 @@
-import { deleteSession } from "../../lib/auth";
+import { deleteSession, getSessionTokenFromRequest } from "../../lib/auth";
 
 export async function GET(context: any) {
   const forwardedProto = context.request.headers.get("x-forwarded-proto");
@@ -6,12 +6,7 @@ export async function GET(context: any) {
   const isSecure =
     requestUrl.protocol === "https:" || forwardedProto === "https";
 
-  // Get session token from cookies
-  const cookies = context.request.headers.get("cookie") || "";
-  const sessionToken = cookies
-    .split(";")
-    .find((c: string) => c.trim().startsWith("session="))
-    ?.split("=")[1];
+  const sessionToken = getSessionTokenFromRequest(context.request);
 
   // Delete session if it exists
   if (sessionToken) {
@@ -22,7 +17,7 @@ export async function GET(context: any) {
   const response = context.redirect("/auth/login");
   response.headers.set(
     "Set-Cookie",
-    `session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isSecure ? "; Secure" : ""}`
+    `session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isSecure ? "; Secure" : ""}`,
   );
 
   return response;

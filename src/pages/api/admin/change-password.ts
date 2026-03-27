@@ -1,19 +1,13 @@
 import type { APIRoute } from "astro";
-import { changeUserPassword, validateSession } from "../../../lib/auth";
+import { changeUserPassword } from "../../../lib/auth";
 import { setSiteSetting } from "../../../lib/db";
 
 export const prerender = false;
 
 const INITIAL_PASSWORD_CHANGED_KEY = "defaultAdminPasswordChanged";
 
-export const POST: APIRoute = async ({ request }) => {
-  const cookies = request.headers.get("cookie") || "";
-  const sessionToken = cookies
-    .split(";")
-    .find((c) => c.trim().startsWith("session="))
-    ?.split("=")[1];
-
-  const session = sessionToken ? await validateSession(sessionToken) : null;
+export const POST: APIRoute = async ({ request, locals }) => {
+  const session = locals.session;
   if (!session) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,

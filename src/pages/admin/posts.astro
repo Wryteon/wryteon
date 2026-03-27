@@ -1,24 +1,11 @@
 ---
 import { getAllPosts, deletePost, getSiteSettings } from "../../lib/db";
-import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
 import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 import AdminFeedback from "../../admin/components/AdminFeedback.astro";
 import AdminNav from "../../admin/components/AdminNav.astro";
 
 export const prerender = false;
-
-// Validate session
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
-const session = sessionToken ? await validateSession(sessionToken) : null;
-if (!session) {
-  return Astro.redirect("/auth/login");
-}
 
 const isDeletePayload = (value: unknown): value is { id: string } => {
   if (typeof value !== "object" || value === null) {
@@ -363,7 +350,9 @@ const settings = await getSiteSettings();
               <tbody>
                 {posts.map((post: PostRecord) => (
                   <tr>
-                    <td class="post-title" data-label="Title">{post.title}</td>
+                    <td class="post-title" data-label="Title">
+                      {post.title}
+                    </td>
                     <td data-label="Slug">{post.slug}</td>
                     <td data-label="Status">
                       <span class={`status-badge status-${post.status}`}>
@@ -407,7 +396,11 @@ const settings = await getSiteSettings();
 
     <script>
       type AdminFeedbackApi = {
-        toast: (message: string, type?: "success" | "error" | "info", title?: string) => void;
+        toast: (
+          message: string,
+          type?: "success" | "error" | "info",
+          title?: string,
+        ) => void;
         confirm: (options: {
           title?: string;
           message: string;
@@ -417,65 +410,69 @@ const settings = await getSiteSettings();
         }) => Promise<boolean>;
       };
 
-      const adminFeedback = (window as Window & {
-        AdminFeedback?: AdminFeedbackApi;
-      }).AdminFeedback;
+      const adminFeedback = (
+        window as Window & {
+          AdminFeedback?: AdminFeedbackApi;
+        }
+      ).AdminFeedback;
 
-      document.querySelectorAll<HTMLButtonElement>(".btn-delete[data-post-id]").forEach((button) => {
-        button.addEventListener("click", async () => {
-          const postId = button.dataset.postId;
-          if (!postId) return;
+      document
+        .querySelectorAll<HTMLButtonElement>(".btn-delete[data-post-id]")
+        .forEach((button) => {
+          button.addEventListener("click", async () => {
+            const postId = button.dataset.postId;
+            if (!postId) return;
 
-          const confirmed = await adminFeedback?.confirm({
-            title: "Delete post?",
-            message:
-              "This removes the post permanently. You cannot undo this action.",
-            confirmLabel: "Delete post",
-            cancelLabel: "Keep post",
-            tone: "danger",
-          });
-
-          if (!confirmed) {
-            return;
-          }
-
-          button.disabled = true;
-
-          try {
-            const response = await fetch("/admin/posts", {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ id: postId }),
+            const confirmed = await adminFeedback?.confirm({
+              title: "Delete post?",
+              message:
+                "This removes the post permanently. You cannot undo this action.",
+              confirmLabel: "Delete post",
+              cancelLabel: "Keep post",
+              tone: "danger",
             });
 
-            if (response.ok) {
+            if (!confirmed) {
+              return;
+            }
+
+            button.disabled = true;
+
+            try {
+              const response = await fetch("/admin/posts", {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ id: postId }),
+              });
+
+              if (response.ok) {
+                adminFeedback?.toast(
+                  "The post was deleted successfully.",
+                  "success",
+                  "Post deleted",
+                );
+                window.setTimeout(() => window.location.reload(), 500);
+              } else {
+                adminFeedback?.toast(
+                  "The post could not be deleted. Please try again.",
+                  "error",
+                  "Delete failed",
+                );
+                button.disabled = false;
+              }
+            } catch (error) {
+              console.error("Delete error:", error);
               adminFeedback?.toast(
-                "The post was deleted successfully.",
-                "success",
-                "Post deleted",
-              );
-              window.setTimeout(() => window.location.reload(), 500);
-            } else {
-              adminFeedback?.toast(
-                "The post could not be deleted. Please try again.",
+                "A network error prevented deletion.",
                 "error",
                 "Delete failed",
               );
               button.disabled = false;
             }
-          } catch (error) {
-            console.error("Delete error:", error);
-            adminFeedback?.toast(
-              "A network error prevented deletion.",
-              "error",
-              "Delete failed",
-            );
-            button.disabled = false;
-          }
+          });
         });
-      });
     </script>
   </body>
 </html>

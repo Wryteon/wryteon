@@ -1,6 +1,5 @@
 ---
 import { getSiteSettings } from "../../lib/db";
-import { validateSession } from "../../lib/auth";
 import {
   MAX_BLOG_HEADLINE_LENGTH,
   MAX_BLOG_NAME_LENGTH,
@@ -10,17 +9,6 @@ import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.as
 import AdminNav from "../../admin/components/AdminNav.astro";
 
 export const prerender = false;
-
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
-const session = sessionToken ? await validateSession(sessionToken) : null;
-if (!session) {
-  return Astro.redirect(APP_ROUTES.auth.login);
-}
 
 const settings = await getSiteSettings();
 ---

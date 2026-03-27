@@ -6,12 +6,7 @@ import {
 import { APP_ROUTES } from "../../../lib/routes";
 import { API_ROUTE_MODULES } from "./routes";
 
-const validateSession = vi.fn();
 const setSiteSetting = vi.fn(async () => undefined);
-
-vi.mock("../../../lib/auth", () => ({
-  validateSession,
-}));
 
 vi.mock("../../../lib/db", () => ({
   setSiteSetting,
@@ -41,28 +36,10 @@ function createRequest(body: BodyInit | null, cookie = "session=valid-token") {
 }
 
 beforeEach(() => {
-  validateSession.mockReset();
   setSiteSetting.mockClear();
-  validateSession.mockResolvedValue({ userId: "admin-1" });
 });
 
 describe(APP_ROUTES.api.settings, () => {
-  it("returns 401 without a valid session", async () => {
-    const { POST } = await import(API_ROUTE_MODULES.settings);
-
-    validateSession.mockResolvedValue(null);
-
-    const response = await POST({
-      request: createRequest(JSON.stringify({ blogName: "Wryteon" })),
-    } as Parameters<typeof POST>[0]);
-
-    expect(response.status).toBe(401);
-    expect((await response.json()) as SettingsResponse).toEqual({
-      error: "Unauthorized",
-    });
-    expect(setSiteSetting).not.toHaveBeenCalled();
-  });
-
   it("returns 400 for invalid JSON", async () => {
     const { POST } = await import(API_ROUTE_MODULES.settings);
 

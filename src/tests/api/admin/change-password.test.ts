@@ -2,12 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_ROUTES } from "../../../lib/routes";
 import { API_ROUTE_MODULES } from "./routes";
 
-const validateSession = vi.fn();
 const changeUserPassword = vi.fn();
 const setSiteSetting = vi.fn(async () => undefined);
 
 vi.mock("../../../lib/auth", () => ({
-  validateSession,
   changeUserPassword,
   MIN_PASSWORD_LENGTH: 8,
 }));
@@ -40,19 +38,15 @@ function createRequest(body: BodyInit | null, cookie = "session=valid-token") {
 }
 
 beforeEach(() => {
-  validateSession.mockReset();
   changeUserPassword.mockReset();
   setSiteSetting.mockClear();
 
-  validateSession.mockResolvedValue({ userId: "admin-1" });
   changeUserPassword.mockResolvedValue({ success: true });
 });
 
 describe(APP_ROUTES.api.changePassword, () => {
   it("returns 401 without a valid session", async () => {
     const { POST } = await import(API_ROUTE_MODULES.changePassword);
-
-    validateSession.mockResolvedValue(null);
 
     const response = await POST({
       request: createRequest(
@@ -62,6 +56,7 @@ describe(APP_ROUTES.api.changePassword, () => {
           confirmPassword: "new-password-123",
         }),
       ),
+      locals: {},
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(401);
@@ -76,6 +71,7 @@ describe(APP_ROUTES.api.changePassword, () => {
 
     const response = await POST({
       request: createRequest("{invalid-json"),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(400);
@@ -92,6 +88,7 @@ describe(APP_ROUTES.api.changePassword, () => {
       request: createRequest(
         JSON.stringify({ currentPassword: "old-password" }),
       ),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(400);
@@ -112,6 +109,7 @@ describe(APP_ROUTES.api.changePassword, () => {
           confirmPassword: "different-password",
         }),
       ),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(400);
@@ -132,6 +130,7 @@ describe(APP_ROUTES.api.changePassword, () => {
           confirmPassword: "same-password",
         }),
       ),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(400);
@@ -157,6 +156,7 @@ describe(APP_ROUTES.api.changePassword, () => {
           confirmPassword: "new-password-123",
         }),
       ),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(400);
@@ -177,6 +177,7 @@ describe(APP_ROUTES.api.changePassword, () => {
           confirmPassword: "new-password-123",
         }),
       ),
+      locals: { session: { userId: "admin-1" } },
     } as Parameters<typeof POST>[0]);
 
     expect(response.status).toBe(200);

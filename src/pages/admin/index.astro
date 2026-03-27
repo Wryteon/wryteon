@@ -1,28 +1,17 @@
 ---
-import { getPostCount, getPostStatusCounts, getSiteSettings } from "../../lib/db";
-import { validateSession } from "../../lib/auth";
+import {
+  getPostCount,
+  getPostStatusCounts,
+  getSiteSettings,
+} from "../../lib/db";
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 import AdminNav from "../../admin/components/AdminNav.astro";
 
 export const prerender = false;
 
-// Validate session using AdminLayout
 const postCount = await getPostCount();
 const postStatusCounts = await getPostStatusCounts();
-
-// Extract session info from cookies
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
-// Validate and get user info
-const session = sessionToken ? await validateSession(sessionToken) : null;
-if (!session) {
-  return Astro.redirect("/auth/login");
-}
 
 const settings = await getSiteSettings();
 const currentYear = new Date().getFullYear();
