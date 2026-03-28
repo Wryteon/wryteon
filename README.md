@@ -14,7 +14,6 @@ A sleek, modern blogging CMS built with **Astro** and **Editor.js**, featuring a
 - **Keyboard Shortcuts**: Fast navigation with `CMD+SHIFT+H`, etc.
 - **Drag to Reorder**: Easily organize your content
 - **Real-time Preview**: See your formatting as you type
-- **Rich Media**: Embed YouTube, Twitter, Instagram, and more
 
 ### 🎛️ Admin Dashboard
 
@@ -23,14 +22,6 @@ A sleek, modern blogging CMS built with **Astro** and **Editor.js**, featuring a
 - **Account Security**: Change admin password from Settings
 - **Default Password Warning**: Banner appears across admin pages until password is changed
 - **Responsive Design**: Works on desktop, tablet, mobile
-- **Beautiful UI**: Modern gradient design with smooth interactions
-
-### 📱 Frontend
-
-- **Homepage**: Shows all published posts
-- **Post Pages**: Beautiful rendering of all content types
-- **Responsive**: Mobile-first design that looks great everywhere
-- **Fast**: Static generation for instant load times
 
 ### 💾 Data Management
 
@@ -367,7 +358,7 @@ git push origin --tags
 
 - [ ] Media library
 - [ ] Post scheduling
-- [ ] Categories & tags
+- [ ] Categories as tags
 - [ ] Search functionality
 - [ ] Comments system
 - [ ] Social sharing
