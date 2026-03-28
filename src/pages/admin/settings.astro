@@ -206,7 +206,7 @@ const settings = await getSiteSettings();
     data-settings-api-route={APP_ROUTES.api.settings}
   >
     <div class="container">
-      <AdminNav activePage="settings" />
+      <AdminNav activePage="settings" settings={settings} />
 
       <a href="/admin" class="back-link">← Back to Dashboard</a>
 

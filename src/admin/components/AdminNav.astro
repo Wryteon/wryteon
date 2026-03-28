@@ -3,10 +3,13 @@ import { getSiteSettings } from "../../lib/db";
 
 export interface Props {
   activePage?: "dashboard" | "new-post" | "posts" | "settings";
+  settings?: Awaited<ReturnType<typeof getSiteSettings>>;
 }
 
-const { activePage = "dashboard" } = Astro.props;
-const settings = await getSiteSettings();
+const { activePage = "dashboard", settings: providedSettings } =
+  Astro.props as Props;
+
+const settings = providedSettings ?? (await getSiteSettings());
 
 const isActive = (page: Props["activePage"]) => activePage === page;
 ---

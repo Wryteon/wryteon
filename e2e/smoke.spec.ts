@@ -93,6 +93,22 @@ test("login works with email", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("admin edit route renders nav when settings prop is omitted", async ({
+  page,
+}) => {
+  await loginAsAdmin(page);
+
+  const slug = `e2e-nav-fallback-${Date.now()}`;
+  const title = `Nav Fallback ${slug}`;
+
+  await createPostViaApi(page, { slug, title, status: "draft" });
+  await page.goto(`/admin/${slug}`);
+
+  await expect(page).toHaveURL(new RegExp(`/admin/${slug}$`));
+  await expect(page.locator(".admin-navbar .logo")).toContainText("🚀");
+  await expect(page.locator("#title-input")).toHaveValue(title);
+});
+
 test("can create and view a published post", async ({ page }) => {
   await loginAsAdmin(page);
 
