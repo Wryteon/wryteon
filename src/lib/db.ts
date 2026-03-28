@@ -76,6 +76,24 @@ export async function getPostCount(): Promise<number> {
     return count;
 }
 
+export async function getPostStatusCounts(): Promise<Record<PostStatus, number>> {
+    const rows = await db.select({ status: Posts.status }).from(Posts);
+    const counts: Record<PostStatus, number> = {
+        draft: 0,
+        published: 0,
+    };
+
+    for (const row of rows) {
+        if (row.status === "draft" || row.status === "published") {
+            counts[row.status] += 1;
+        }
+    }
+
+    logDb("getPostStatusCounts", counts);
+
+    return counts;
+}
+
 export async function savePost(postData: PostPayload): Promise<void> {
     const now = new Date();
     const id = postData.id ?? postData.slug;

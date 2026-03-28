@@ -1,25 +1,14 @@
 ---
 import { savePost, getPostBySlug } from "../../lib/db";
-import { validateSession } from "../../lib/auth";
 import type { PostRecord } from "../../lib/db";
 import type { PostPayload, PostStatus } from "../../types/post";
 import type { EditorDocument } from "../../types/editor";
 import Editor from "../../admin/components/Editor.astro";
+import AdminFeedback from "../../admin/components/AdminFeedback.astro";
+import AdminNav from "../../admin/components/AdminNav.astro";
 import AdminSecurityWarning from "../../admin/components/AdminSecurityWarning.astro";
 
 export const prerender = false;
-
-// Validate session
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
-const session = sessionToken ? await validateSession(sessionToken) : null;
-if (!session) {
-  return Astro.redirect("/auth/login");
-}
 
 const isPostStatus = (value: unknown): value is PostStatus =>
   value === "draft" || value === "published";
@@ -110,15 +99,33 @@ const initialData = JSON.stringify(initialDocument);
           -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         margin: 0;
         padding: 20px;
-        background: #f5f5f5;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .page-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
       }
       .container {
         max-width: 800px;
+        width: 100%;
         margin: 0 auto;
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         padding: 20px;
+      }
+      .back-link {
+        display: inline-block;
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .back-link:hover {
+        text-decoration: underline;
       }
       .header {
         margin-bottom: 20px;
@@ -128,6 +135,33 @@ const initialData = JSON.stringify(initialDocument);
 
       .warning-wrap {
         margin-bottom: 12px;
+      }
+      .editor-status {
+        display: none;
+        margin-bottom: 16px;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+      .editor-status.visible {
+        display: block;
+      }
+      .editor-status.success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+      }
+      .editor-status.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+      }
+      .editor-status.info {
+        background: #dbeafe;
+        color: #1d4ed8;
+        border: 1px solid #93c5fd;
       }
       .title-input {
         width: 100%;
@@ -152,45 +186,97 @@ const initialData = JSON.stringify(initialDocument);
         border: 1px solid #ddd;
         border-radius: 4px;
       }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 12px;
+        }
+
+        .container {
+          padding: 16px;
+        }
+      }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="warning-wrap">
-        <AdminSecurityWarning />
-      </div>
+    <div class="page-shell">
+      <AdminNav activePage={isNewPost ? "new-post" : "posts"} />
 
-      <div class="header">
-        <input
-          type="text"
-          class="title-input"
-          placeholder="Post Title"
-          value={post?.title ?? ""}
-          id="title-input"
-        />
-        <input
-          type="text"
-          class="slug-input"
-          placeholder="post-slug"
-          value={post?.slug ?? ""}
-          id="slug-input"
-        />
-        <select class="status-select" id="status-select">
-          <option value="draft" selected={post?.status !== "published"}>
-            Draft
-          </option>
-          <option value="published" selected={post?.status === "published"}>
-            Published
-          </option>
-        </select>
-      </div>
+      <a href={isNewPost ? "/admin" : "/admin/posts"} class="back-link">
+        ← {isNewPost ? "Back to Dashboard" : "Back to Posts"}
+      </a>
 
-      <Editor data={initialData} />
+      <div class="container">
+        <div class="warning-wrap">
+          <AdminSecurityWarning />
+        </div>
+
+        <div
+          class="editor-status"
+          id="editor-status"
+          role="status"
+          aria-live="polite"
+        >
+        </div>
+
+        <div class="header">
+          <input
+            type="text"
+            class="title-input"
+            placeholder="Post Title"
+            value={post?.title ?? ""}
+            id="title-input"
+          />
+          <input
+            type="text"
+            class="slug-input"
+            placeholder="post-slug"
+            value={post?.slug ?? ""}
+            id="slug-input"
+          />
+          <select class="status-select" id="status-select">
+            <option value="draft" selected={post?.status !== "published"}>
+              Draft
+            </option>
+            <option value="published" selected={post?.status === "published"}>
+              Published
+            </option>
+          </select>
+        </div>
+
+        <Editor data={initialData} />
+      </div>
     </div>
 
+    <AdminFeedback />
+
     <script>
+      type AdminFeedbackApi = {
+        toast: (
+          message: string,
+          type?: "success" | "error" | "info",
+          title?: string,
+        ) => void;
+      };
+
       // Handle editor save events
       const editorElement = document.querySelector("editor-component");
+      const statusElement = document.getElementById("editor-status");
+      const adminFeedback = (
+        window as Window & {
+          AdminFeedback?: AdminFeedbackApi;
+        }
+      ).AdminFeedback;
+
+      function showEditorStatus(
+        message: string,
+        type: "success" | "error" | "info",
+      ) {
+        if (!statusElement) return;
+        statusElement.textContent = message;
+        statusElement.className = `editor-status visible ${type}`;
+      }
+
       if (!editorElement) {
         console.error("Editor component not found on the page.");
       } else {
@@ -202,7 +288,10 @@ const initialData = JSON.stringify(initialDocument);
           const editorData = customEvent?.detail;
 
           if (!editorData) {
-            alert("Editor data missing from save event");
+            showEditorStatus(
+              "Editor data is missing from the save request.",
+              "error",
+            );
             return;
           }
 
@@ -215,18 +304,26 @@ const initialData = JSON.stringify(initialDocument);
             !(slugInput instanceof HTMLInputElement) ||
             !(statusSelect instanceof HTMLSelectElement)
           ) {
-            alert("Editor form inputs are missing");
+            showEditorStatus(
+              "The editor fields are not available on the page.",
+              "error",
+            );
             return;
           }
 
-          const title = titleInput.value;
-          const slug = slugInput.value;
+          const title = titleInput.value.trim();
+          const slug = slugInput.value.trim();
           const status = statusSelect.value;
 
           if (!title || !slug) {
-            alert("Please fill in both title and slug");
+            showEditorStatus(
+              "Please fill in both the title and slug fields.",
+              "error",
+            );
             return;
           }
+
+          showEditorStatus("Saving your post...", "info");
 
           try {
             const response = await fetch("/admin/" + slug, {
@@ -246,17 +343,30 @@ const initialData = JSON.stringify(initialDocument);
             });
 
             if (response.ok) {
-              alert("Post saved successfully!");
+              showEditorStatus("Post saved successfully.", "success");
+              adminFeedback?.toast(
+                "Your changes were saved.",
+                "success",
+                "Post saved",
+              );
               // Redirect to the post if published
               if (status === "published") {
-                window.location.href = `/${slug}`;
+                window.setTimeout(() => {
+                  window.location.href = `/${slug}`;
+                }, 500);
               }
             } else {
-              alert("Failed to save post");
+              showEditorStatus(
+                "The post could not be saved. Please try again.",
+                "error",
+              );
             }
           } catch (error) {
             console.error("Save error:", error);
-            alert("Error saving post");
+            showEditorStatus(
+              "A network error prevented saving the post.",
+              "error",
+            );
           }
         });
       }

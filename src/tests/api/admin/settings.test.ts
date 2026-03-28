@@ -2,16 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MAX_BLOG_HEADLINE_LENGTH,
   MAX_BLOG_NAME_LENGTH,
-} from "../../lib/siteSettings";
+} from "../../../lib/siteSettings";
+import { APP_ROUTES } from "../../../lib/routes";
+import { API_ROUTE_MODULES } from "./routes";
 
-const validateSession = vi.fn();
 const setSiteSetting = vi.fn(async () => undefined);
 
-vi.mock("../../lib/auth", () => ({
-  validateSession,
-}));
-
-vi.mock("../../lib/db", () => ({
+vi.mock("../../../lib/db", () => ({
   setSiteSetting,
 }));
 
@@ -31,7 +28,7 @@ function createRequest(body: BodyInit | null, cookie = "session=valid-token") {
     headers.set("Content-Type", "application/json");
   }
 
-  return new Request("http://localhost/api/settings", {
+  return new Request(`http://localhost${APP_ROUTES.api.settings}`, {
     method: "POST",
     headers,
     body,
@@ -39,30 +36,12 @@ function createRequest(body: BodyInit | null, cookie = "session=valid-token") {
 }
 
 beforeEach(() => {
-  validateSession.mockReset();
   setSiteSetting.mockClear();
-  validateSession.mockResolvedValue({ userId: "admin-1" });
 });
 
-describe("/api/settings", () => {
-  it("returns 401 without a valid session", async () => {
-    const { POST } = await import("../../pages/api/settings");
-
-    validateSession.mockResolvedValue(null);
-
-    const response = await POST({
-      request: createRequest(JSON.stringify({ blogName: "Wryteon" })),
-    } as Parameters<typeof POST>[0]);
-
-    expect(response.status).toBe(401);
-    expect((await response.json()) as SettingsResponse).toEqual({
-      error: "Unauthorized",
-    });
-    expect(setSiteSetting).not.toHaveBeenCalled();
-  });
-
+describe(APP_ROUTES.api.settings, () => {
   it("returns 400 for invalid JSON", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest("{not-json"),
@@ -76,7 +55,7 @@ describe("/api/settings", () => {
   });
 
   it("returns 400 when blogName is not a string", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest(JSON.stringify({ blogName: 123 })),
@@ -90,7 +69,7 @@ describe("/api/settings", () => {
   });
 
   it("returns 400 when blogName is empty after trimming", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest(JSON.stringify({ blogName: "   " })),
@@ -104,7 +83,7 @@ describe("/api/settings", () => {
   });
 
   it("returns 400 when blogName exceeds the configured length", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest(
@@ -123,7 +102,7 @@ describe("/api/settings", () => {
   });
 
   it("returns 400 when blogHeadline exceeds the configured length", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest(
@@ -142,7 +121,7 @@ describe("/api/settings", () => {
   });
 
   it("stores trimmed blogName and blogHeadline on success", async () => {
-    const { POST } = await import("../../pages/api/settings");
+    const { POST } = await import(API_ROUTE_MODULES.settings);
 
     const response = await POST({
       request: createRequest(
@@ -157,7 +136,11 @@ describe("/api/settings", () => {
     expect((await response.json()) as SettingsResponse).toEqual({
       success: true,
     });
-    expect(setSiteSetting).toHaveBeenNthCalledWith(1, "blogName", "Wryteon Blog");
+    expect(setSiteSetting).toHaveBeenNthCalledWith(
+      1,
+      "blogName",
+      "Wryteon Blog",
+    );
     expect(setSiteSetting).toHaveBeenNthCalledWith(
       2,
       "blogHeadline",

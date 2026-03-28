@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { getMediaUrl, getUploadsDir } from "../../lib/uploads";
+import { getMediaUrl, getUploadsDir } from "../../../lib/uploads";
 
 export const prerender = false;
 

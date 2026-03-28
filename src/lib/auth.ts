@@ -24,7 +24,7 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(
   password: string,
-  passwordHash: string
+  passwordHash: string,
 ): Promise<boolean> {
   return compare(password, passwordHash);
 }
@@ -59,7 +59,7 @@ export async function createSession(userId: string): Promise<string> {
  * Validate a session token and return user ID if valid
  */
 export async function validateSession(
-  token: string
+  token: string,
 ): Promise<{ userId: string } | null> {
   try {
     const result = await db
@@ -84,6 +84,29 @@ export async function validateSession(
     console.error("Session validation error:", error);
     return null;
   }
+}
+
+/**
+ * Extract session token from Cookie header
+ */
+export function getSessionTokenFromRequest(request: Request): string | null {
+  const cookies = request.headers.get("cookie") || "";
+  const token = cookies
+    .split(";")
+    .find((entry) => entry.trim().startsWith("session="))
+    ?.split("=")[1];
+
+  return token ?? null;
+}
+
+/**
+ * Validate session attached to the request cookie
+ */
+export async function getRequestSession(
+  request: Request,
+): Promise<{ userId: string } | null> {
+  const token = getSessionTokenFromRequest(request);
+  return token ? validateSession(token) : null;
 }
 
 /**
@@ -128,7 +151,7 @@ export async function getUserById(userId: string) {
 export async function changeUserPassword(
   userId: string,
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (newPassword.length < MIN_PASSWORD_LENGTH) {
     return {
@@ -146,7 +169,7 @@ export async function changeUserPassword(
 
     const isCurrentPasswordValid = await verifyPassword(
       currentPassword,
-      user.passwordHash
+      user.passwordHash,
     );
 
     if (!isCurrentPasswordValid) {
@@ -170,10 +193,7 @@ export async function changeUserPassword(
 /**
  * Create a new user
  */
-export async function createUser(
-  email: string,
-  password: string
-) {
+export async function createUser(email: string, password: string) {
   try {
     const passwordHash = await hashPassword(password);
     const userId = crypto.randomUUID();
@@ -197,7 +217,7 @@ export async function createUser(
  */
 export async function verifyLogin(
   email: string,
-  password: string
+  password: string,
 ): Promise<{ userId: string } | null> {
   const user = await getUserByEmail(email);
 

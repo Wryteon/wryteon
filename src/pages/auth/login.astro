@@ -1,23 +1,14 @@
 ---
-import { verifyLogin, createSession, validateSession } from "../../lib/auth";
+import { verifyLogin, createSession, getRequestSession } from "../../lib/auth";
 
 export const prerender = false;
 
 let error = "";
 
-// Extract session token from cookies to check if already authenticated
-const cookies = Astro.request.headers.get("cookie") || "";
-const sessionToken = cookies
-  .split(";")
-  .find((c) => c.trim().startsWith("session="))
-  ?.split("=")[1];
-
 // If already authenticated, redirect to admin
-if (sessionToken) {
-  const session = await validateSession(sessionToken);
-  if (session) {
-    return Astro.redirect("/admin");
-  }
+const session = await getRequestSession(Astro.request);
+if (session) {
+  return Astro.redirect("/admin");
 }
 
 // Handle form submission

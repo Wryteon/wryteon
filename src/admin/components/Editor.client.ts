@@ -9,6 +9,7 @@ import Code from "@editorjs/code";
 import Quote from "@editorjs/quote";
 import List from "@editorjs/list";
 import Delimiter from "@editorjs/delimiter";
+import { APP_ROUTES } from "../../lib/routes";
 
 type SaveHandler = (data: OutputData) => void;
 
@@ -336,7 +337,7 @@ class EditorComponent extends HTMLElement {
         class: Image,
         config: {
           endpoints: {
-            byFile: "/api/upload",
+            byFile: APP_ROUTES.api.upload,
             byUrl: "/api/fetchUrl",
           },
           field: "image",

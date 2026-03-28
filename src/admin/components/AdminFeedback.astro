@@ -1,0 +1,296 @@
+<div class="admin-toast-region" id="admin-toast-region" aria-live="polite">
+</div>
+
+<div class="admin-confirm-overlay" id="admin-confirm-overlay" hidden>
+  <div class="admin-confirm-backdrop" data-close-confirm></div>
+  <section
+    class="admin-confirm-panel"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="admin-confirm-title"
+    aria-describedby="admin-confirm-message"
+  >
+    <h2 id="admin-confirm-title">Confirm action</h2>
+    <p id="admin-confirm-message"></p>
+    <div class="admin-confirm-actions">
+      <button
+        type="button"
+        class="confirm-btn secondary"
+        id="admin-confirm-cancel"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="confirm-btn danger"
+        id="admin-confirm-accept"
+      >
+        Confirm
+      </button>
+    </div>
+  </section>
+</div>
+
+<style>
+  .admin-toast-region {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(360px, calc(100vw - 24px));
+    z-index: 110;
+    pointer-events: none;
+  }
+
+  .admin-toast {
+    border-radius: 14px;
+    padding: 14px 16px;
+    color: white;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+    background: #334155;
+    transform: translateY(8px);
+    opacity: 0;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  .admin-toast.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .admin-toast.success {
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  }
+
+  .admin-toast.error {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  }
+
+  .admin-toast.info {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  }
+
+  .admin-toast-title {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  .admin-toast-message {
+    display: block;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .admin-confirm-overlay[hidden] {
+    display: none;
+  }
+
+  .admin-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+  }
+
+  .admin-confirm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(3px);
+  }
+
+  .admin-confirm-panel {
+    position: relative;
+    width: min(420px, 100%);
+    background: white;
+    border-radius: 20px;
+    padding: 22px;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+  }
+
+  .admin-confirm-panel h2 {
+    color: #111827;
+    font-size: 24px;
+    margin: 0 0 10px;
+  }
+
+  .admin-confirm-panel p {
+    color: #4b5563;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .admin-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .confirm-btn {
+    border: none;
+    border-radius: 999px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .confirm-btn.secondary {
+    background: #e5e7eb;
+    color: #1f2937;
+  }
+
+  .confirm-btn.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  @media (max-width: 768px) {
+    .admin-toast-region {
+      right: 12px;
+      left: 12px;
+      bottom: 12px;
+      width: auto;
+    }
+
+    .admin-confirm-overlay {
+      align-items: end;
+    }
+
+    .admin-confirm-panel {
+      border-radius: 22px 22px 16px 16px;
+      padding: 20px;
+    }
+
+    .admin-confirm-actions {
+      flex-direction: column-reverse;
+    }
+
+    .confirm-btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  type AdminToastType = "success" | "error" | "info";
+
+  type AdminConfirmOptions = {
+    title?: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    tone?: "danger" | "default";
+  };
+
+  type AdminFeedbackApi = {
+    toast: (message: string, type?: AdminToastType, title?: string) => void;
+    confirm: (options: AdminConfirmOptions) => Promise<boolean>;
+  };
+
+  type AdminFeedbackWindow = Window & {
+    AdminFeedback?: AdminFeedbackApi;
+  };
+
+  const globalWindow = window as AdminFeedbackWindow;
+  const toastRegion = document.getElementById("admin-toast-region");
+  const overlay = document.getElementById("admin-confirm-overlay");
+  const titleElement = document.getElementById("admin-confirm-title");
+  const messageElement = document.getElementById("admin-confirm-message");
+  const cancelButton = document.getElementById("admin-confirm-cancel");
+  const acceptButton = document.getElementById("admin-confirm-accept");
+  const backdrop = overlay?.querySelector("[data-close-confirm]");
+
+  let resolver: ((value: boolean) => void) | null = null;
+
+  function closeConfirm(result: boolean) {
+    if (overlay) {
+      overlay.hidden = true;
+    }
+
+    if (resolver) {
+      resolver(result);
+      resolver = null;
+    }
+  }
+
+  function toast(message: string, type: AdminToastType = "info", title = "") {
+    if (!toastRegion) return;
+
+    const toastElement = document.createElement("div");
+    toastElement.className = `admin-toast ${type}`;
+
+    if (title) {
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "admin-toast-title";
+      titleSpan.textContent = title;
+      toastElement.appendChild(titleSpan);
+    }
+
+    const messageSpan = document.createElement("span");
+    messageSpan.className = "admin-toast-message";
+    messageSpan.textContent = message;
+    toastElement.appendChild(messageSpan);
+    toastRegion.appendChild(toastElement);
+
+    requestAnimationFrame(() => {
+      toastElement.classList.add("visible");
+    });
+
+    window.setTimeout(() => {
+      toastElement.classList.remove("visible");
+      window.setTimeout(() => toastElement.remove(), 220);
+    }, 3200);
+  }
+
+  async function confirm(options: AdminConfirmOptions): Promise<boolean> {
+    if (
+      !overlay ||
+      !titleElement ||
+      !messageElement ||
+      !acceptButton ||
+      !cancelButton
+    ) {
+      return false;
+    }
+
+    // Prevent overwriting an in-flight resolver.
+    if (resolver) {
+      return false;
+    }
+
+    titleElement.textContent = options.title ?? "Confirm action";
+    messageElement.textContent = options.message;
+    acceptButton.textContent = options.confirmLabel ?? "Confirm";
+    cancelButton.textContent = options.cancelLabel ?? "Cancel";
+    acceptButton.classList.toggle("danger", options.tone === "danger");
+
+    overlay.hidden = false;
+    acceptButton.focus();
+
+    return new Promise<boolean>((resolve) => {
+      resolver = resolve;
+    });
+  }
+
+  cancelButton?.addEventListener("click", () => closeConfirm(false));
+  acceptButton?.addEventListener("click", () => closeConfirm(true));
+  backdrop?.addEventListener("click", () => closeConfirm(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && overlay && !overlay.hidden) {
+      closeConfirm(false);
+    }
+  });
+
+  globalWindow.AdminFeedback = { toast, confirm };
+</script>
