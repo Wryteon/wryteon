@@ -229,11 +229,18 @@
 
     const toastElement = document.createElement("div");
     toastElement.className = `admin-toast ${type}`;
-    toastElement.innerHTML = `
-      ${title ? `<span class="admin-toast-title">${title}</span>` : ""}
-      <span class="admin-toast-message">${message}</span>
-    `;
 
+    if (title) {
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "admin-toast-title";
+      titleSpan.textContent = title;
+      toastElement.appendChild(titleSpan);
+    }
+
+    const messageSpan = document.createElement("span");
+    messageSpan.className = "admin-toast-message";
+    messageSpan.textContent = message;
+    toastElement.appendChild(messageSpan);
     toastRegion.appendChild(toastElement);
 
     requestAnimationFrame(() => {
